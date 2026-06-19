@@ -16,6 +16,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sa
 select{width:100%;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .manage-btn{font-size:12px;color:#534AB7;background:none;border:none;cursor:pointer;text-decoration:underline;margin-top:8px;display:none;padding:0}
 .manage-btn.visible{display:inline}
+.token-setup{background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.token-setup p{font-size:13px;color:#856404;margin-bottom:8px}
+.token-row{display:flex;gap:8px}
+.token-row input{flex:1;font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid #ddd;font-family:monospace}
+.token-row button{padding:8px 14px;font-size:13px;border-radius:8px;border:none;background:#534AB7;color:#fff;cursor:pointer;white-space:nowrap}
+.token-ok{background:#d4edda;border:1px solid #28a745;border-radius:12px;padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.token-ok span{font-size:13px;color:#155724}
+.token-ok button{font-size:12px;color:#999;background:none;border:none;cursor:pointer;text-decoration:underline}
 .manage-panel{display:none;margin-top:12px;border-top:1px solid #eee;padding-top:12px}
 .manage-panel.open{display:block}
 .name-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
@@ -57,6 +65,18 @@ select{width:100%;font-size:15px;padding:10px 12px;border-radius:8px;border:1px 
   <div class="header">
     <h1>7月 検査同行 参加希望フォーム</h1>
     <p>名前を選択し、同行できる日程にチェックを入れて送信してください</p>
+  </div>
+
+  <div id="tokenSetup" class="token-setup" style="display:none">
+    <p>⚙️ 初回設定：Notionトークンを入力してください（管理者のみ）</p>
+    <div class="token-row">
+      <input type="password" id="tokenInput" placeholder="ntn_xxx...">
+      <button onclick="saveToken()">保存</button>
+    </div>
+  </div>
+  <div id="tokenOk" class="token-ok" style="display:none">
+    <span>✅ Notion接続済み</span>
+    <button onclick="clearToken()">トークンをリセット</button>
   </div>
 
   <div id="formArea">
@@ -278,7 +298,8 @@ async function handleSubmit(){
   document.getElementById('formArea').style.display='none';
   document.getElementById('sending').style.display='block';
 
-  const TOKEN = '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';
+  const TOKEN = localStorage.getItem('notion_token');
+  if(!TOKEN){ alert('Notionトークンが設定されていません。ページ上部の設定からトークンを入力してください。'); document.getElementById('sending').style.display='none'; document.getElementById('formArea').style.display='block'; return; }
   for(const pageId of [...checked]){
     try{
       await fetch(`https://api.notion.com/v1/pages/${pageId}`,{
@@ -311,7 +332,26 @@ function resetForm(){
   document.querySelectorAll('.slot input[type=checkbox]').forEach(c=>{ c.checked=false; c.closest('.slot').classList.remove('checked'); });
 }
 
+function saveToken(){
+  const t = document.getElementById('tokenInput').value.trim();
+  if(!t){ alert('トークンを入力してください'); return; }
+  localStorage.setItem('notion_token', t);
+  checkToken();
+}
+
+function clearToken(){
+  localStorage.removeItem('notion_token');
+  checkToken();
+}
+
+function checkToken(){
+  const t = localStorage.getItem('notion_token');
+  document.getElementById('tokenSetup').style.display = t ? 'none' : 'block';
+  document.getElementById('tokenOk').style.display = t ? 'flex' : 'none';
+}
+
 buildSchedule();
+checkToken();
 </script>
 </body>
 </html>
