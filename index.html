@@ -96,7 +96,6 @@ select{width:100%;font-size:15px;padding:10px 12px;border-radius:8px;border:1px 
   <div class="success" id="success">
     <div class="icon">✅</div>
     <h2>送信完了しました！</h2>
-    <p id="successMsg"></p>
     <button class="reset-btn" onclick="resetForm()">別の人の回答を入力する</button>
   </div>
 </div>
@@ -279,26 +278,27 @@ async function handleSubmit(){
   document.getElementById('formArea').style.display='none';
   document.getElementById('sending').style.display='block';
 
-  let successCount = 0;
+  const TOKEN = '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';
   for(const pageId of [...checked]){
     try{
-      const res = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+      await fetch(`https://api.notion.com/v1/pages/${pageId}`,{
+        method:'PATCH',
+        headers:{
+          'Authorization':'Bearer ' + TOKEN,
+          'Content-Type':'application/json',
+          'Notion-Version':'2022-06-28'
+        },
         body:JSON.stringify({
-          model:'claude-sonnet-4-6',
-          max_tokens:500,
-          mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion'}],
-          messages:[{role:'user',content:`Update Notion page "${pageId}". Set property "研修生" (rich_text) to "${name}". Use notion-update-page with command update_properties. No explanation needed.`}]
+          properties:{
+            '研修生':{rich_text:[{type:'text',text:{content:name}}]}
+          }
         })
       });
-      if(res.ok) successCount++;
     }catch(e){}
   }
 
   document.getElementById('sending').style.display='none';
   document.getElementById('success').style.display='block';
-  document.getElementById('successMsg').textContent = `${name}さんの希望（${successCount}件）をNotionに反映しました`;
 }
 
 function resetForm(){
