@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7月 検査同行 参加希望フォーム</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;background:#f5f5f5;min-height:100vh;padding:1rem}
+.container{max-width:640px;margin:0 auto}
+.header{background:#534AB7;color:#fff;padding:1.25rem 1.5rem;border-radius:12px;margin-bottom:1rem}
+.header h1{font-size:17px;font-weight:600;margin-bottom:4px}
+.header p{font-size:12px;opacity:.85}
+.card{background:#fff;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.label{font-size:12px;font-weight:600;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+select{width:100%;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.manage-btn{font-size:12px;color:#534AB7;background:none;border:none;cursor:pointer;text-decoration:underline;margin-top:8px;display:none;padding:0}
+.manage-btn.visible{display:inline}
+.manage-panel{display:none;margin-top:12px;border-top:1px solid #eee;padding-top:12px}
+.manage-panel.open{display:block}
+.name-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.name-tag{display:inline-flex;align-items:center;gap:6px;background:#f0f0f0;border-radius:99px;padding:4px 12px;font-size:13px;color:#333}
+.name-tag button{background:none;border:none;cursor:pointer;color:#999;font-size:16px;line-height:1;padding:0}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1;font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:#fff}
+.add-row button{padding:8px 16px;font-size:13px;border-radius:8px;border:1px solid #534AB7;background:#534AB7;color:#fff;cursor:pointer;white-space:nowrap}
+.day-block{background:#fff;border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.day-header{padding:10px 1rem;background:#534AB7;font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6px}
+.slot{display:flex;align-items:flex-start;gap:12px;padding:11px 1rem;border-bottom:1px solid #f0f0f0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.slot:last-child{border-bottom:none}
+.slot:active{background:#f9f9f9}
+.slot.checked{background:#EEEDFE}
+.slot input[type=checkbox]{width:18px;height:18px;accent-color:#534AB7;cursor:pointer;flex-shrink:0;margin-top:2px}
+.slot-time{font-size:12px;font-weight:600;color:#888;min-width:44px;padding-top:2px}
+.slot-info{flex:1}
+.slot-name{font-size:14px;color:#222;line-height:1.4;margin-bottom:2px}
+.slot-address{font-size:11px;color:#999;line-height:1.4}
+.slot-staff{font-size:11px;color:#534AB7;background:#EEEDFE;padding:2px 8px;border-radius:99px;white-space:nowrap;display:inline-block;margin-top:3px}
+.submit-area{margin-top:1rem}
+.count{font-size:13px;color:#888;text-align:center;margin-bottom:10px}
+.submit-btn{width:100%;padding:14px;font-size:16px;font-weight:600;background:#534AB7;color:#fff;border:none;border-radius:12px;cursor:pointer}
+.submit-btn:active{opacity:.85}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.err{font-size:13px;color:#e74c3c;text-align:center;margin-bottom:8px;display:none}
+.success{display:none;text-align:center;padding:2rem 1.5rem;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:1rem}
+.success .icon{font-size:48px;margin-bottom:12px}
+.success h2{font-size:18px;color:#27ae60;font-weight:600;margin-bottom:6px}
+.success p{font-size:14px;color:#666}
+.reset-btn{margin-top:16px;background:none;border:1px solid #ddd;border-radius:8px;padding:10px 24px;font-size:14px;color:#666;cursor:pointer}
+.sending{display:none;text-align:center;padding:1.5rem;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:1rem}
+.spinner{width:36px;height:36px;border:3px solid #eee;border-top-color:#534AB7;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>7月 検査同行 参加希望フォーム</h1>
+    <p>名前を選択し、同行できる日程にチェックを入れて送信してください</p>
+  </div>
+
+  <div id="formArea">
+    <div class="card">
+      <div class="label">研修生名</div>
+      <select id="trainee" onchange="onNameChange()">
+        <option value="">-- 選択してください --</option>
+        <option value="伊藤">伊藤</option>
+        <option value="渡口">渡口</option>
+        <option value="武内">武内</option>
+      </select>
+      <button class="manage-btn" id="manageBtn" onclick="toggleManage()">名前を管理</button>
+      <div class="manage-panel" id="managePanel">
+        <p style="font-size:12px;color:#888;margin-bottom:8px">登録済みの研修生</p>
+        <div class="name-tags" id="nameTags"></div>
+        <div class="add-row">
+          <input type="text" id="newName" placeholder="名前を入力" onkeydown="if(event.key==='Enter')addName()">
+          <button onclick="addName()">＋ 追加</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="schedule"></div>
+
+    <div class="submit-area">
+      <p class="count" id="count">0件選択中</p>
+      <p class="err" id="err">名前を選択してから送信してください</p>
+      <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">同行希望を送信する</button>
+    </div>
+  </div>
+
+  <div class="sending" id="sending">
+    <div class="spinner"></div>
+    <p style="font-size:14px;color:#666">Notionに送信中...</p>
+  </div>
+
+  <div class="success" id="success">
+    <div class="icon">✅</div>
+    <h2>送信完了しました！</h2>
+    <p id="successMsg"></p>
+    <button class="reset-btn" onclick="resetForm()">別の人の回答を入力する</button>
+  </div>
+</div>
+
+<script>
+let trainees = ['伊藤','渡口','武内'];
+const checked = new Set();
+
+const schedule = [
+  {date:"7/1（水）",slots:[
+    {time:"13:00",store:"博多劇場 川﨑店",address:"神奈川県川崎市川崎区砂子1-2-4 川崎第5ビル1階",staff:"吉田",id:"38432589-7715-8129-acd0-d4b831e84dd6"},
+    {time:"15:00",store:"VANSAN横浜店",address:"神奈川県横浜市神奈川区鶴屋町2-16-4 エフテムビルNo.1",staff:"吉田",id:"38432589-7715-8160-a001-f43144005db0"}
+  ]},
+  {date:"7/2（木）",slots:[
+    {time:"10:00",store:"築地すし鮮 恵比寿東口店",address:"東京都渋谷区恵比寿4-3-1 クイズ恵比寿1F",staff:"児林",id:"38432589-7715-819f-9ab0-c0cf14a4e5a3"},
+    {time:"15:00",store:"築地すし鮮 浅草雷門店",address:"東京都台東区雷門2-16-9 Hulic&New雷門1F",staff:"児林",id:"38432589-7715-81a5-8809-eda49c71d524"},
+    {time:"15:45",store:"浅草すし若 雷門店",address:"東京都台東区浅草1-18-8 大番ビル1F・2F",staff:"児林",id:"38432589-7715-812e-be6b-c9ce1ed73b6e"},
+    {time:"16:30",store:"築地すし一番 西浅草店",address:"東京都台東区西浅草2-13-9",staff:"児林",id:"38432589-7715-8105-b465-e3fd15c5baf8"}
+  ]},
+  {date:"7/3（金）",slots:[
+    {time:"10:00",store:"七宝麻辣湯溝の口店",address:"神奈川県川崎市高津区溝の口1-13-18",staff:"児林",id:"38432589-7715-8107-8a49-f3325bce559a"},
+    {time:"15:00",store:"寿司あおい青葉台本店",address:"神奈川県横浜市青葉区青葉台2-7-4",staff:"児林",id:"38432589-7715-8157-b994-d1ea8ce0375f"},
+    {time:"15:45",store:"じねんじょ庵 青葉台店",address:"神奈川県横浜市青葉区青葉台2-10-13 ハイム青葉台2-1F",staff:"児林",id:"38432589-7715-812e-8837-c3c0ca0842fc"}
+  ]},
+  {date:"7/7（火）",slots:[
+    {time:"9:00",store:"山下本気うどん 横浜ワールドポーターズ",address:"神奈川県横浜市中区新港2-2-1 横浜ワールドポーターズ1F",staff:"児林",id:"38432589-7715-81a1-9cf8-d1b44f7489c3"},
+    {time:"14:00",store:"山下本気うどん 川崎銀柳街",address:"神奈川県川崎市川崎区砂子2-1-1",staff:"児林",id:"38432589-7715-814f-b7dc-edc48952e18c"},
+    {time:"15:30",store:"山下本気うどん 横浜ポルタ",address:"神奈川県横浜市西区高島2-16-1 YOKOHAMA PORTA B1F",staff:"児林",id:"38432589-7715-8166-9aae-ff6377b7ee89"}
+  ]},
+  {date:"7/8（水）",slots:[
+    {time:"11:00",store:"寿司ト おでん にのや新橋汐留店",address:"東京都港区東新橋1-2-14 belle汐留1F",staff:"児林",id:"38432589-7715-8133-a509-de72bfc240ec"},
+    {time:"13:00",store:"博多劇場 新橋3号店",address:"東京都港区新橋1-3",staff:"児林",id:"38432589-7715-8150-a75b-fcd3f1ddab32"},
+    {time:"15:00",store:"七宝麻辣湯大船店",address:"神奈川県横浜市栄区笠間1-1-1 106-B",staff:"児林",id:"38432589-7715-815b-b84c-d7ce857c401d"},
+    {time:"16:00",store:"七宝麻辣湯藤沢店",address:"神奈川県藤沢市南藤沢20-2",staff:"児林",id:"38432589-7715-8149-bee4-c58b08cd492d"}
+  ]},
+  {date:"7/9（木）",slots:[
+    {time:"11:00",store:"寿司トおでん にのや有楽町店",address:"東京都千代田区丸の内3-7-3",staff:"児林",id:"38432589-7715-81a9-95a8-c614fa8db0e8"},
+    {time:"13:00",store:"博多劇場 大手町店",address:"東京都千代田区大手町2-5-6",staff:"児林",id:"38432589-7715-812c-a8e1-d0bb10f3d265"},
+    {time:"15:00",store:"麺屋空海 大船ルミネウィング店",address:"神奈川県鎌倉市大船1-4-1 ルミネウィング7F",staff:"児林",id:"38432589-7715-81ce-ac95-e69f5340d064"}
+  ]},
+  {date:"7/10（金）",slots:[
+    {time:"9:30",store:"ゆで太郎 関内羽衣町店",address:"神奈川県横浜市中区羽衣町1-3-11",staff:"吉田",id:"38432589-7715-813b-90cd-e6f01e58c1f0"},
+    {time:"14:00",store:"VANSAN センター南店",address:"神奈川県横浜市都筑区茅ヶ崎中央6-1 Southwood 2F",staff:"吉田",id:"38432589-7715-81d8-844d-cfaac482aa03"},
+    {time:"15:30",store:"VANSANそよら高田店",address:"神奈川県横浜市港北区高田西1-1-47 そよら横浜高田2階",staff:"吉田",id:"38432589-7715-8104-9493-e6079874446a"}
+  ]},
+  {date:"7/13（月）",slots:[
+    {time:"9:30",store:"七宝麻辣湯横浜ポルタ店",address:"神奈川県横浜市西区高島2-16-1 YOKOHAMA PORTA B1 115区画",staff:"児林",id:"38432589-7715-819d-9852-e007e7812c60"},
+    {time:"14:00",store:"やきとり酒場 一鳥前 白楽店",address:"神奈川県横浜市神奈川区鶴屋町2-16-4 エフテムビルNO.1 3階",staff:"児林",id:"38432589-7715-81e0-bad8-dabb4e93c8dc"},
+    {time:"14:00",store:"すみれ横浜鶴屋町店",address:"神奈川県横浜市西区南幸2-5-5 4MS254ビル6階",staff:"吉田",id:"38432589-7715-8110-a27b-c3855fdfb0a3"},
+    {time:"15:00",store:"七宝麻辣湯新横浜店",address:"神奈川県横浜市港北区新横浜2-3-3 新横浜ウエストビル",staff:"児林",id:"38432589-7715-815c-883b-ea180a8ea3d3"},
+    {time:"15:00",store:"すみれ横浜西口店",address:"神奈川県横浜市西区南幸2-5-5 4MS254ビル6階",staff:"吉田",id:"38432589-7715-8187-9c77-c08337572bb5"}
+  ]},
+  {date:"7/14（火）",slots:[
+    {time:"10:00",store:"七宝麻辣湯綱島店",address:"神奈川県横浜市港北区綱島西1-10-20 鳥羽ビル1階",staff:"児林",id:"38432589-7715-81e5-85f5-e8363ce742c7"},
+    {time:"13:00",store:"すみれ日吉店",address:"神奈川県横浜市港北区日吉2-2-4 加藤ビル1階・地下1階",staff:"児林",id:"38432589-7715-81c9-8c5f-c7c8a45d2f63"},
+    {time:"14:00",store:"やきとり酒場 日吉一鳥前店",address:"神奈川県横浜市港北区日吉2-2-4 加藤ビル1階・地下1階",staff:"児林",id:"38432589-7715-81a7-bc6b-ea65b3c9799d"},
+    {time:"16:00",store:"七宝麻辣湯関内店",address:"神奈川県横浜市中区小野町3-35 LISTEAST BLD L区画",staff:"児林",id:"38432589-7715-8199-becf-c85488b07798"}
+  ]},
+  {date:"7/15（水）",slots:[
+    {time:"11:00",store:"寿司トおでん にのや 大門店",address:"東京都港区芝大門1-15-1",staff:"児林",id:"38432589-7715-8155-b48c-ff4a6b54cf83"},
+    {time:"13:00",store:"ラムちゃん 浅草橋店",address:"東京都千代田区東神田3-7-20",staff:"児林",id:"38432589-7715-81a1-a9f0-cb015878a79b"},
+    {time:"14:20",store:"博多劇場 神保町店",address:"東京都千代田区神田神保町1-8-10 Fundes神保町10F",staff:"児林",id:"38432589-7715-8137-a5bd-f28215287a32"}
+  ]},
+  {date:"7/22（水）",slots:[
+    {time:"10:00",store:"VANSANイオン天王町店",address:"神奈川県横浜市保土ケ谷区川辺町3-5 イオン天王町1階",staff:"吉田",id:"38432589-7715-813e-a9e9-f3c994ff1a0b"},
+    {time:"14:00",store:"すみれ川﨑店",address:"神奈川県川崎市川崎区小川町2-13 ダイシンタワー川崎1F",staff:"吉田",id:"38432589-7715-81ac-8487-fc7954ab7653"},
+    {time:"15:00",store:"焼肉家あいちゃん大倉山店",address:"神奈川県横浜市港北区大倉山1-18-6",staff:"吉田",id:"38432589-7715-81c2-9c60-c65c2a4609dc"}
+  ]},
+  {date:"7/24（金）",slots:[
+    {time:"10:00",store:"味の牛たん喜助グランツリー武蔵小杉店",address:"神奈川県川崎市中原区新丸子東3-1135 グランツリー武蔵小杉1F",staff:"吉田",id:"38432589-7715-8198-bd86-e246ff7bc562"},
+    {time:"14:00",store:"VANSANグランツリー武蔵小杉店",address:"神奈川県川崎市中原区新丸子東3-1135-1 グランツリー武蔵小杉1F",staff:"吉田",id:"38432589-7715-8169-959f-d2ed6cc81a8b"},
+    {time:"15:00",store:"すみれ武蔵小杉店",address:"神奈川県川崎市中原区小杉町3-430 コパンビル1〜3F",staff:"吉田",id:"38432589-7715-8107-afbe-c39ed56bfb19"},
+    {time:"16:00",store:"じねんじょ庵武蔵小杉店",address:"神奈川県川崎市中原区小杉町3-445 KAHALA小杉南ガーデン1F",staff:"吉田",id:"38432589-7715-81e6-9ebf-e6cb5cb3f1c5"}
+  ]},
+  {date:"7/28（火）",slots:[
+    {time:"10:00",store:"味の牛たん喜助横浜ランドマーク店",address:"神奈川県横浜市西区みなとみらい2-2-1 1階",staff:"吉田",id:"38432589-7715-815e-ae79-e9361a190485"},
+    {time:"11:00",store:"寿司トおでんにのや横浜店",address:"神奈川県横浜市西区南幸2-11 プライムメゾン横浜WEST 1F",staff:"吉田",id:"38432589-7715-8151-a1ec-ce309976a0c3"},
+    {time:"14:00",store:"博多劇場横浜店",address:"神奈川県横浜市西区南幸2-10-17",staff:"吉田",id:"38432589-7715-81eb-8761-d80f3db923ca"},
+    {time:"15:00",store:"味の牛たん喜助横浜モアーズ店",address:"神奈川県横浜市西区南幸1-3-1 横浜モアーズ9階",staff:"吉田",id:"38432589-7715-81d8-b340-cfa615432ae3"}
+  ]},
+  {date:"7/29（水）",slots:[
+    {time:"10:00",store:"VANSAN鷺沼店",address:"神奈川県川崎市宮前区鷺沼3-3-8 菅原スポーツビル1F",staff:"吉田",id:"38432589-7715-8189-b033-cc5d2759c465"},
+    {time:"15:00",store:"じねんじょ庵あざみ野店",address:"神奈川県横浜市青葉区あざみ野2-1-3 エトモあざみ野第二東急ビルB1F",staff:"吉田",id:"38432589-7715-81df-b055-d5b6a954e5a3"},
+    {time:"16:00",store:"じねんじょ庵市ヶ尾店",address:"神奈川県横浜市青葉区市ヶ尾町1155-6 パークス市ヶ尾1F",staff:"吉田",id:"38432589-7715-8199-89d6-cb81c76562a6"}
+  ]}
+];
+
+function onNameChange(){
+  const name = document.getElementById('trainee').value;
+  const btn = document.getElementById('manageBtn');
+  btn.classList.toggle('visible', name === '武内');
+  if(name !== '武内') document.getElementById('managePanel').classList.remove('open');
+}
+
+function renderSelect(){
+  const sel = document.getElementById('trainee');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- 選択してください --</option>';
+  trainees.forEach(n => {
+    const o = document.createElement('option');
+    o.value = n; o.textContent = n;
+    if(n === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function renderTags(){
+  const wrap = document.getElementById('nameTags');
+  wrap.innerHTML = '';
+  trainees.forEach(n => {
+    const tag = document.createElement('span');
+    tag.className = 'name-tag';
+    tag.innerHTML = `${n}<button onclick="removeName('${n}')">×</button>`;
+    wrap.appendChild(tag);
+  });
+}
+
+function toggleManage(){
+  const p = document.getElementById('managePanel');
+  p.classList.toggle('open');
+  renderTags();
+}
+
+function addName(){
+  const inp = document.getElementById('newName');
+  const name = inp.value.trim();
+  if(!name || trainees.includes(name)){ inp.value=''; return; }
+  trainees.push(name);
+  inp.value='';
+  renderSelect();
+  renderTags();
+}
+
+function removeName(name){
+  if(trainees.length <= 1){ alert('最低1名は必要です'); return; }
+  trainees = trainees.filter(n => n !== name);
+  renderSelect();
+  renderTags();
+}
+
+function buildSchedule(){
+  const wrap = document.getElementById('schedule');
+  wrap.innerHTML = '';
+  schedule.forEach(day => {
+    const block = document.createElement('div');
+    block.className = 'day-block';
+    block.innerHTML = `<div class="day-header">📅 ${day.date}</div>`;
+    day.slots.forEach(slot => {
+      const lbl = document.createElement('label');
+      lbl.className = 'slot';
+      lbl.innerHTML = `
+        <input type="checkbox" value="${slot.id}" onchange="onCheck(this)">
+        <span class="slot-time">${slot.time}</span>
+        <div class="slot-info">
+          <div class="slot-name">${slot.store}</div>
+          <div class="slot-address">📍 ${slot.address}</div>
+          <span class="slot-staff">${slot.staff}</span>
+        </div>
+      `;
+      block.appendChild(lbl);
+    });
+    wrap.appendChild(block);
+  });
+}
+
+function onCheck(el){
+  const row = el.closest('.slot');
+  if(el.checked){ checked.add(el.value); row.classList.add('checked'); }
+  else { checked.delete(el.value); row.classList.remove('checked'); }
+  document.getElementById('count').textContent = checked.size + '件選択中';
+}
+
+async function handleSubmit(){
+  const name = document.getElementById('trainee').value;
+  const errEl = document.getElementById('err');
+  if(!name){ errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  if(checked.size === 0){ alert('同行できる日程を1つ以上選択してください'); return; }
+
+  document.getElementById('formArea').style.display='none';
+  document.getElementById('sending').style.display='block';
+
+  let successCount = 0;
+  for(const pageId of [...checked]){
+    try{
+      const res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:500,
+          mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion'}],
+          messages:[{role:'user',content:`Update Notion page "${pageId}". Set property "研修生" (rich_text) to "${name}". Use notion-update-page with command update_properties. No explanation needed.`}]
+        })
+      });
+      if(res.ok) successCount++;
+    }catch(e){}
+  }
+
+  document.getElementById('sending').style.display='none';
+  document.getElementById('success').style.display='block';
+  document.getElementById('successMsg').textContent = `${name}さんの希望（${successCount}件）をNotionに反映しました`;
+}
+
+function resetForm(){
+  checked.clear();
+  document.getElementById('success').style.display='none';
+  document.getElementById('formArea').style.display='block';
+  document.getElementById('trainee').value='';
+  document.getElementById('manageBtn').classList.remove('visible');
+  document.getElementById('count').textContent='0件選択中';
+  document.querySelectorAll('.slot input[type=checkbox]').forEach(c=>{ c.checked=false; c.closest('.slot').classList.remove('checked'); });
+}
+
+buildSchedule();
+</script>
+</body>
+</html>
