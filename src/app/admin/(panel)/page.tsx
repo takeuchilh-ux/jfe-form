@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
-import { getInspections, getPeriod } from "@/lib/data";
+import { getInspections, getPeriod, mainAssignees } from "@/lib/data";
 import { fmtMonth, PERIOD_STATUS, shiftMonth, thisMonthJst } from "@/lib/format";
 
 export default async function Dashboard() {
@@ -13,7 +13,7 @@ export default async function Dashboard() {
         month: m,
         period: p,
         total: list.length,
-        unassigned: list.filter((i) => i.assignments.length < i.required_count).length,
+        unassigned: list.filter((i) => mainAssignees(i).length < i.required_count).length,
         unnotified: list.reduce((n, i) => n + i.assignments.filter((a) => !a.notified_at).length, 0),
       };
     }),

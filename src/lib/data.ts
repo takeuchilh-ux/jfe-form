@@ -32,6 +32,7 @@ export type Inspector = {
   area: string;
   notes: string;
   active: boolean;
+  kind: "inspector" | "trainee";
   approved_at: string | null;
   bank_name: string;
   branch_name: string;
@@ -64,14 +65,20 @@ export type InspectionRow = {
   notes: string;
   store: { id: string; name: string; group_name: string; area: string; address: string } | null;
   availabilities: { inspector_id: string; answer: "yes" | "no"; comment: string }[];
-  assignments: { inspector_id: string; notified_at: string | null }[];
+  /** role: main＝担当検査員（必要人数に数える）、trainee＝同行（研修） */
+  assignments: { inspector_id: string; notified_at: string | null; role: "main" | "trainee" }[];
 };
 
 export const INSPECTION_SELECT =
   "id,period_id,store_id,inspection_date,time_slot,required_count,status,notes," +
   "store:kensa_stores(id,name,group_name,area,address)," +
   "availabilities:kensa_availabilities(inspector_id,answer,comment)," +
-  "assignments:kensa_assignments(inspector_id,notified_at)";
+  "assignments:kensa_assignments(inspector_id,notified_at,role)";
+
+/** 必要人数に数える担当者（同行の研修生を除く） */
+export function mainAssignees(i: Pick<InspectionRow, "assignments">) {
+  return i.assignments.filter((a) => a.role !== "trainee");
+}
 
 export async function getPeriod(month: string): Promise<Period | null> {
   return maybe(

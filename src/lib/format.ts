@@ -45,6 +45,8 @@ export const EXPENSE_STATUS: Record<string, string> = {
   paid: "支払済",
 };
 
+export const KIND_LABEL = { inspector: "検査員", trainee: "研修生" } as const;
+
 export const PERIOD_STATUS: Record<string, string> = {
   draft: "下書き",
   released: "リリース中",

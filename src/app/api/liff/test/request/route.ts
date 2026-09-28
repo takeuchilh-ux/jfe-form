@@ -6,7 +6,7 @@ import { todayJst } from "@/lib/format";
 
 /** 本番テストの受験申請（受験日を指定） */
 export const POST = handle(async (req: Request) => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const { exam_date } = await body(req);
   if (!isDate(exam_date)) bad("受験日を選択してください");
   if (exam_date < todayJst()) bad("受験日は今日以降の日付を選択してください");
@@ -16,7 +16,7 @@ export const POST = handle(async (req: Request) => {
 
 /** 申請の取り下げ（未受験のもののみ） */
 export const DELETE = handle(async () => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const r = await openRequest(me.id);
   if (!r) bad("取り下げられる申請がありません");
   const { count } = await db().from("kensa_test_attempts").select("id", { count: "exact", head: true }).eq("request_id", r.id);

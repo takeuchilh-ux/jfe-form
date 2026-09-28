@@ -107,6 +107,33 @@ export default function SchedulesClient({ month, period, inspections, stores, in
             </Link>
           </div>
         </div>
+        <div className="row mt" style={{ justifyContent: "flex-end" }}>
+          {period.status !== "draft" && (
+            <button
+              className="btn sm"
+              disabled={busy}
+              onClick={() =>
+                confirm("下書き（未リリース）の状態に戻しますか？（検査員の回答・アサインはそのまま残ります）") &&
+                run(async () => void (await api(`/api/admin/periods/${period.id}`, { method: "PATCH", body: { status: "draft" } })))
+              }
+            >
+              下書きに戻す
+            </button>
+          )}
+          <button
+            className="btn sm danger"
+            disabled={busy}
+            onClick={() =>
+              confirm(`${fmtMonth(month)}のスケジュールを丸ごと削除します。\n検査 ${inspections.length} 件と、その受注可否の回答・アサインもすべて削除されます。\n\n削除しますか？`) &&
+              run(async () => {
+                await api(`/api/admin/periods/${period.id}`, { method: "DELETE" });
+                return `${fmtMonth(month)}のスケジュールを削除しました`;
+              })
+            }
+          >
+            この月のスケジュールを削除
+          </button>
+        </div>
       </div>
 
       <div className="card">
@@ -171,7 +198,11 @@ export default function SchedulesClient({ month, period, inspections, stores, in
                   <td className="nowrap">
                     <span className="badge ok">{yes}</span> / <span className="badge">{no}</span>
                   </td>
-                  <td>{i.assignments.map((a) => inspectorNames[a.inspector_id] ?? "?").join("、") || <span className="muted">未定</span>}</td>
+                  <td>
+                    {i.assignments.map((a) => `${inspectorNames[a.inspector_id] ?? "?"}${a.role === "trainee" ? "（同行）" : ""}`).join("、") || (
+                      <span className="muted">未定</span>
+                    )}
+                  </td>
                   <td className="nowrap">
                     <button className="btn sm" onClick={() => setEditing(i)}>
                       編集

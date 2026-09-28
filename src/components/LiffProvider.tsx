@@ -10,6 +10,7 @@ export type Me = {
   id: string;
   name: string;
   approved: boolean;
+  kind: "inspector" | "trainee";
   address: string;
   routeSearch: boolean;
   testQuestionCount: number;

@@ -8,6 +8,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 type Row = {
   id: string;
+  role: string;
   inspector: { id: string; name: string; line_user_id: string | null } | null;
   inspection: { inspection_date: string; time_slot: string; status: string; store: { name: string } | null } | null;
 };
@@ -21,7 +22,7 @@ export const POST = handle(async (_req: Request, { params }: Ctx) => {
     await db()
       .from("kensa_assignments")
       .select(
-        "id,inspector:kensa_inspectors(id,name,line_user_id)," +
+        "id,role,inspector:kensa_inspectors(id,name,line_user_id)," +
           "inspection:kensa_inspections!inner(inspection_date,time_slot,status,period_id,store:kensa_stores(name))",
       )
       .is("notified_at", null)
@@ -45,7 +46,8 @@ export const POST = handle(async (_req: Request, { params }: Ctx) => {
     }
     list.sort((a, b) => a.inspection!.inspection_date.localeCompare(b.inspection!.inspection_date));
     const lines = list.map(
-      (r) => `・${fmtDate(r.inspection!.inspection_date)} ${r.inspection!.time_slot} ${r.inspection!.store?.name ?? ""}`.trim(),
+      (r) =>
+        `・${fmtDate(r.inspection!.inspection_date)} ${r.inspection!.time_slot} ${r.inspection!.store?.name ?? ""}${r.role === "trainee" ? "（同行）" : ""}`.trim(),
     );
     try {
       await pushMessage(insp.line_user_id, [

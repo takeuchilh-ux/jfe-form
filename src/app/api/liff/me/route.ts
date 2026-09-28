@@ -11,6 +11,7 @@ export const GET = handle(async () => {
     id: me.id,
     name: me.name,
     approved: !!me.approved_at,
+    kind: me.kind,
     address: data?.address ?? "",
     routeSearch: !!process.env.GOOGLE_MAPS_API_KEY,
     testQuestionCount: s.test_question_count,

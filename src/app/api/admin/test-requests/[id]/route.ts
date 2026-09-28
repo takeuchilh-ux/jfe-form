@@ -56,3 +56,11 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   }
   return { ok: true, lineError };
 });
+
+/** 申請を削除（受験済みなら本番の結果も削除される） */
+export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
+  await requireAdmin();
+  const { id } = await params;
+  must(await db().from("kensa_test_attempts").delete().eq("request_id", id).select("id"));
+  must(await db().from("kensa_test_requests").delete().eq("id", id).select("id"));
+});

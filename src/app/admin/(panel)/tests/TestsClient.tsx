@@ -207,12 +207,13 @@ export default function TestsClient({
                 <th>検査員</th>
                 <th className="right">得点</th>
                 <th>判定</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {attempts.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     まだ受験結果がありません
                   </td>
                 </tr>
@@ -225,6 +226,18 @@ export default function TestsClient({
                     {a.score} / {a.total}
                   </td>
                   <td>{a.passed ? <span className="badge ok">合格</span> : <span className="badge ng">不合格</span>}</td>
+                  <td>
+                    <button
+                      className="btn sm danger"
+                      disabled={busy}
+                      onClick={() =>
+                        confirm(`${a.inspector?.name} さんのこの結果を削除しますか？（申請も削除され、再申請できる状態に戻ります）`) &&
+                        act(() => api(`/api/admin/test-attempts/${a.id}`, { method: "DELETE" }), () => "結果を削除しました")
+                      }
+                    >
+                      削除
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -418,9 +431,19 @@ function RequestsTable({
                       </button>{" "}
                       <button className="btn sm danger" disabled={busy} onClick={() => decide(r, "reject")}>
                         却下
-                      </button>
+                      </button>{" "}
                     </>
                   )}
+                  <button
+                    className="btn sm"
+                    disabled={busy}
+                    onClick={() =>
+                      confirm(`${r.inspector?.name} さんのこの申請を削除しますか？${attempt ? "（本番の結果も削除されます）" : ""}`) &&
+                      act(() => api(`/api/admin/test-requests/${r.id}`, { method: "DELETE" }), () => "申請を削除しました")
+                    }
+                  >
+                    削除
+                  </button>
                 </td>
               </tr>
             );
