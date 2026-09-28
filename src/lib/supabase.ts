@@ -7,12 +7,15 @@ type Client = SupabaseClient<any, "public", "public", any, any>;
 let client: Client | null = null;
 
 /** サーバー専用の Supabase クライアント（service_role）。RLS をバイパスするためブラウザへ渡さないこと。 */
+// Supabase プロジェクト（eisei-kensa）の URL。公開情報のためコードに持たせる
+const SUPABASE_URL = "https://filtkadnvdhjkkiawiiz.supabase.co";
+
 export function db(): Client {
   if (!client) {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY が未設定です");
-    client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    // 環境変数は貼り付け時の空白・改行を除去して使う
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY が未設定です");
+    client = createClient(SUPABASE_URL, key, { auth: { persistSession: false, autoRefreshToken: false } });
   }
   return client;
 }

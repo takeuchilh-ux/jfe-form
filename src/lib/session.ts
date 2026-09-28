@@ -10,7 +10,7 @@ const COOKIE = { admin: "kensa_admin", inspector: "kensa_inspector" } as const;
 const MAX_AGE = { admin: 60 * 60 * 12, inspector: 60 * 60 * 24 * 30 } as const;
 
 function secret() {
-  const s = process.env.SESSION_SECRET;
+  const s = process.env.SESSION_SECRET?.trim();
   if (!s || s.length < 32) throw new Error("SESSION_SECRET は 32 文字以上で設定してください");
   return new TextEncoder().encode(s);
 }

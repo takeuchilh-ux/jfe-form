@@ -11,7 +11,7 @@ export const POST = handle(async (req: Request) => {
   const res = await db().from("kensa_admins").select("id,name,password_hash").eq("email", email).maybeSingle();
   if (res.error) {
     console.error("admin login db error", res.error);
-    throw new HttpError(500, `データベースに接続できません（Vercel の SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY を確認してください）: ${res.error.message}`);
+    throw new HttpError(500, `データベースに接続できません（Vercel の SUPABASE_SERVICE_ROLE_KEY を確認してください）: ${res.error.message}`);
   }
   const data = maybe(res);
   // ユーザーが存在しない場合もハッシュ比較を行い応答時間を揃える
