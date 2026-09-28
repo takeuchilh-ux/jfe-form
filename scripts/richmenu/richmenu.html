@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=block" rel="stylesheet">
+<!-- リッチメニュー画像の元データ。scripts/richmenu/render.mjs で PNG（2500x1686）に書き出します -->
+<style>
+  html, body { margin: 0; width: 2500px; height: 1686px; }
+  body { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; background: #d7e6e1;
+         font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", sans-serif; }
+  .cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px; color: #fff; }
+  .icon { font-size: 260px; line-height: 1; font-family: "Noto Color Emoji", sans-serif; }
+  .label { font-size: 120px; font-weight: 700; letter-spacing: 4px; }
+  .a { background: #0e7c66; } .b { background: #13866f; } .c { background: #1a6f8a; } .d { background: #6a4c93; }
+</style>
+</head>
+<body>
+  <div class="cell a"><div class="icon">📋</div><div class="label">受注可否の回答</div></div>
+  <div class="cell b"><div class="icon">📅</div><div class="label">マイスケジュール</div></div>
+  <div class="cell c"><div class="icon">🚃</div><div class="label">交通費申請</div></div>
+  <div class="cell d"><div class="icon">📝</div><div class="label">50問テスト</div></div>
+</body>
+</html>
