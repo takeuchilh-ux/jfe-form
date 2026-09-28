@@ -17,6 +17,6 @@ export const POST = handle(async (req: Request) => {
     if (typeof q === "string") bad(`${i + 1} 行目：${q}`);
     return { ...q, sort_order: order++ };
   });
-  must(await db().from("kensa_questions").insert(inserts));
+  must(await db().from("kensa_questions").insert(inserts).select("id"));
   return { count: inserts.length };
 });

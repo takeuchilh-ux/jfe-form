@@ -31,11 +31,12 @@ export default function SchedulesClient({ month, period, inspections, stores, in
     try {
       const text = await fn();
       if (text) setMsg({ type: "success", text });
-      router.refresh();
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
     } finally {
       setBusy(false);
+      // エラー時も最新の状態を表示する
+      router.refresh();
     }
   }
 

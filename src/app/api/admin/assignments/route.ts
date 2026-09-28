@@ -25,7 +25,8 @@ export const PUT = handle(async (req: Request) => {
     must(
       await db()
         .from("kensa_assignments")
-        .insert(toAdd.map((inspector_id) => ({ inspection_id: b.inspection_id, inspector_id, role: kindOf.get(inspector_id) === "trainee" ? "trainee" : "main" }))),
+        .insert(toAdd.map((inspector_id) => ({ inspection_id: b.inspection_id, inspector_id, role: kindOf.get(inspector_id) === "trainee" ? "trainee" : "main" })))
+        .select("id"),
     );
   }
   return { added: toAdd.length, removed: toRemove.length };

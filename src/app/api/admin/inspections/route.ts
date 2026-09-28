@@ -26,6 +26,6 @@ export const POST = handle(async (req: Request) => {
       notes: str(it.notes, 1000),
     };
   });
-  must(await db().from("kensa_inspections").insert(rows));
+  must(await db().from("kensa_inspections").insert(rows).select("id"));
   return { count: rows.length };
 });
