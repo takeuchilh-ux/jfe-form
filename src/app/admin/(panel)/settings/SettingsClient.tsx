@@ -38,6 +38,10 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
         <span>合格点（正解数）</span>
         <input type="number" min={0} value={s.test_pass_score} onChange={(e) => setS({ ...s, test_pass_score: Number(e.target.value) })} />
       </label>
+      <label className="field">
+        <span>1 日の受験回数の上限</span>
+        <input type="number" min={1} max={100} value={s.test_daily_limit} onChange={(e) => setS({ ...s, test_daily_limit: Number(e.target.value) })} />
+      </label>
       <button className="btn primary" disabled={busy}>
         保存
       </button>

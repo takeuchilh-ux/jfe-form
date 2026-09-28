@@ -3,11 +3,12 @@ import { db, maybe, must } from "./supabase";
 
 export type Settings = {
   test_question_count: number;
+  test_daily_limit: number;
   test_pass_score: number;
 };
 
 export async function getSettings(): Promise<Settings> {
-  return must(await db().from("kensa_settings").select("test_question_count,test_pass_score").eq("id", 1).single());
+  return must(await db().from("kensa_settings").select("test_question_count,test_pass_score,test_daily_limit").eq("id", 1).single());
 }
 
 export type Store = {

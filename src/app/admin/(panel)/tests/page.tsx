@@ -4,7 +4,7 @@ import TestsClient, { type Attempt, type Question } from "./TestsClient";
 
 export default async function TestsPage() {
   const [questions, attempts, settings] = await Promise.all([
-    db().from("kensa_questions").select("id,sort_order,category,question,choices,correct_index,explanation,active").order("sort_order").order("created_at"),
+    db().from("kensa_questions").select("id,sort_order,category,group_key,question,correct_index,explanation,active").order("sort_order").order("created_at"),
     db()
       .from("kensa_test_attempts")
       .select("id,score,total,passed,submitted_at,inspector:kensa_inspectors(name)")

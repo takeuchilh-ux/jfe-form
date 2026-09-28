@@ -5,29 +5,36 @@ import LiffHeader from "@/components/LiffHeader";
 import { useMe } from "@/components/LiffProvider";
 import { api, errMsg } from "@/lib/client";
 
-type Q = { id: string; category: string; question: string; choices: string[] };
-type Exam = { attemptId: string; passScore: number; questions: Q[] };
+type Q = { id: string; category: string; question: string };
+type Exam = { attemptId: string; passScore: number; remaining: number; questions: Q[] };
+type Feedback = { answer: number; correct: number; isCorrect: boolean; explanation: string };
 type Result = {
   score: number;
   total: number;
   passed: boolean;
-  results: { id: string; question: string; choices: string[]; correct: number; answer: number | null; explanation: string }[];
+  wrong: { id: string; question: string; correct: number; answer: number | null; explanation: string }[];
 };
-type History = { id: string; score: number; total: number; passed: boolean; submitted_at: string }[];
+type History = {
+  attempts: { id: string; score: number; total: number; passed: boolean; submitted_at: string }[];
+  usedToday: number;
+  dailyLimit: number;
+};
+
+const MARK = ["○", "×"];
 
 export default function TestPage() {
   const { me } = useMe();
   const [history, setHistory] = useState<History | null>(null);
   const [exam, setExam] = useState<Exam | null>(null);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [idx, setIdx] = useState(0);
+  const [feedback, setFeedback] = useState<Record<string, Feedback>>({});
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    api<{ attempts: History }>("/api/liff/test/history")
-      .then((r) => setHistory(r.attempts))
+    api<History>("/api/liff/test/history")
+      .then(setHistory)
       .catch((e) => setError(errMsg(e)));
   }, [result]);
 
@@ -35,9 +42,8 @@ export default function TestPage() {
     setBusy(true);
     setError("");
     try {
-      const e = await api<Exam>("/api/liff/test", { method: "POST" });
-      setExam(e);
-      setAnswers({});
+      setExam(await api<Exam>("/api/liff/test", { method: "POST" }));
+      setFeedback({});
       setIdx(0);
       setResult(null);
     } catch (err) {
@@ -47,14 +53,30 @@ export default function TestPage() {
     }
   }
 
-  async function submit() {
-    if (!exam) return;
-    const left = exam.questions.length - Object.keys(answers).length;
-    if (!confirm(left ? `未回答が ${left} 問あります。提出しますか？` : "提出して採点します。よろしいですか？")) return;
+  async function answer(a: 0 | 1) {
+    if (!exam || busy) return;
+    const q = exam.questions[idx];
+    if (feedback[q.id]) return;
     setBusy(true);
     setError("");
     try {
-      setResult(await api<Result>("/api/liff/test", { method: "PUT", body: { attemptId: exam.attemptId, answers } }));
+      const f = await api<Feedback>("/api/liff/test/answer", { body: { attemptId: exam.attemptId, questionId: q.id, answer: a } });
+      setFeedback((m) => ({ ...m, [q.id]: f }));
+    } catch (err) {
+      setError(errMsg(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submit() {
+    if (!exam) return;
+    const left = exam.questions.length - Object.keys(feedback).length;
+    if (left > 0 && !confirm(`未回答が ${left} 問あります（不正解になります）。提出しますか？`)) return;
+    setBusy(true);
+    setError("");
+    try {
+      setResult(await api<Result>("/api/liff/test", { method: "PUT", body: { attemptId: exam.attemptId } }));
       setExam(null);
       window.scrollTo({ top: 0 });
     } catch (err) {
@@ -64,28 +86,28 @@ export default function TestPage() {
     }
   }
 
+  // ── 採点結果 ──
   if (result) {
-    const wrong = result.results.filter((r) => r.answer !== r.correct);
     return (
       <main className="liff">
         <LiffHeader title="採点結果" />
         <div className="card" style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 40, fontWeight: 700 }}>
+          <div style={{ fontSize: 44, fontWeight: 700 }}>
             {result.score} <span style={{ fontSize: 20 }}>/ {result.total}</span>
           </div>
-          <div style={{ fontSize: 20 }}>{result.passed ? <span className="badge ok">🎉 合格</span> : <span className="badge ng">不合格</span>}</div>
+          <div style={{ fontSize: 20, marginTop: 4 }}>
+            {result.passed ? <span className="badge ok">🎉 合格</span> : <span className="badge ng">不合格</span>}
+          </div>
+          <p className="muted small mt">合格ライン：{me.testPassScore} 問以上正解</p>
         </div>
-        {wrong.length > 0 && <h2 className="mt">間違えた問題（{wrong.length}）</h2>}
-        {wrong.map((r) => (
-          <div className="card" key={r.id}>
-            <p style={{ whiteSpace: "pre-wrap" }}>{r.question}</p>
-            {r.choices.map((c, i) => (
-              <div key={i} className={`q-choice ${i === r.correct ? "correct" : i === r.answer ? "wrong" : ""}`}>
-                {i === r.correct ? "○" : i === r.answer ? "×" : "・"} {c}
-              </div>
-            ))}
-            {r.answer === null && <p className="small muted mt">未回答</p>}
-            {r.explanation && <p className="small mt">💡 {r.explanation}</p>}
+        {result.wrong.length > 0 && <h2 className="mt">間違えた問題（{result.wrong.length}）</h2>}
+        {result.wrong.map((w) => (
+          <div className="card" key={w.id}>
+            <p>{w.question}</p>
+            <p className="small">
+              正解：<strong>{MARK[w.correct]}</strong>　あなたの回答：{w.answer === null ? "未回答" : MARK[w.answer]}
+            </p>
+            {w.explanation && <p className="small muted">💡 {w.explanation}</p>}
           </div>
         ))}
         <button className="btn block" onClick={() => setResult(null)}>
@@ -95,9 +117,12 @@ export default function TestPage() {
     );
   }
 
+  // ── 受験中 ──
   if (exam) {
     const q = exam.questions[idx];
-    const answered = Object.keys(answers).length;
+    const f = feedback[q.id];
+    const answered = Object.keys(feedback).length;
+    const correctSoFar = Object.values(feedback).filter((x) => x.isCorrect).length;
     const last = idx === exam.questions.length - 1;
     return (
       <main className="liff">
@@ -105,7 +130,9 @@ export default function TestPage() {
           <strong>
             第 {idx + 1} 問 / {exam.questions.length}
           </strong>
-          <span className="muted small">回答済 {answered}</span>
+          <span className="muted small">
+            正解 {correctSoFar} / 回答 {answered}
+          </span>
         </div>
         <div className="progress" style={{ marginBottom: 16 }}>
           <div style={{ width: `${(answered / exam.questions.length) * 100}%` }} />
@@ -113,68 +140,74 @@ export default function TestPage() {
         {error && <div className="alert error">{error}</div>}
         <div className="card">
           {q.category && <span className="badge">{q.category}</span>}
-          <p style={{ whiteSpace: "pre-wrap", fontSize: 16, marginTop: 8 }}>{q.question}</p>
-          {q.choices.map((c, i) => (
-            <div
-              key={i}
-              className={`q-choice ${answers[q.id] === i ? "on" : ""}`}
-              onClick={() => {
-                setAnswers((a) => ({ ...a, [q.id]: i }));
-                if (!last) setTimeout(() => setIdx((n) => Math.min(n + 1, exam.questions.length - 1)), 200);
-              }}
-            >
-              <strong>{i + 1}.</strong> {c}
-            </div>
-          ))}
-        </div>
-        <div className="row">
-          <button className="btn grow" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>
-            ‹ 前へ
-          </button>
-          {!last && (
-            <button className="btn grow" onClick={() => setIdx(idx + 1)}>
-              次へ ›
-            </button>
-          )}
-        </div>
-        <details className="mt">
-          <summary className="muted small">問題一覧から移動</summary>
-          <div className="chips mt">
-            {exam.questions.map((x, i) => (
-              <span key={x.id} className={`chip ${x.id in answers ? "on" : ""}`} onClick={() => setIdx(i)} style={{ minWidth: 36, justifyContent: "center" }}>
-                {i + 1}
-              </span>
+          <p style={{ fontSize: 17, marginTop: 10, lineHeight: 1.7 }}>{q.question}</p>
+          <div className="tf-buttons">
+            {[0, 1].map((a) => (
+              <button
+                key={a}
+                className={`tf-btn ${f ? (a === f.correct ? "is-correct" : a === f.answer ? "is-wrong" : "is-dim") : ""}`}
+                disabled={!!f || busy}
+                onClick={() => answer(a as 0 | 1)}
+                aria-label={a === 0 ? "まる（正しい）" : "ばつ（誤り）"}
+              >
+                {MARK[a]}
+              </button>
             ))}
           </div>
-        </details>
-        <div className="sticky-foot">
-          <button className="btn primary block lg" disabled={busy} onClick={submit}>
-            提出して採点する
-          </button>
+          {f && (
+            <div className={`alert ${f.isCorrect ? "success" : "error"} mt`}>
+              <strong>{f.isCorrect ? "⭕ 正解！" : `❌ 不正解（正解は「${MARK[f.correct]}」）`}</strong>
+              {!f.isCorrect && f.explanation && <div className="small" style={{ marginTop: 4, color: "var(--text)" }}>💡 {f.explanation}</div>}
+            </div>
+          )}
         </div>
+        {f && !last && (
+          <button className="btn primary block lg" onClick={() => setIdx(idx + 1)}>
+            次の問題へ ›
+          </button>
+        )}
+        {(last && f) || answered === exam.questions.length ? (
+          <button className="btn primary block lg mt" disabled={busy} onClick={submit}>
+            採点する
+          </button>
+        ) : null}
+        {idx > 0 && (
+          <button className="btn block mt" onClick={() => setIdx(idx - 1)}>
+            ‹ 前の問題を見る
+          </button>
+        )}
       </main>
     );
   }
 
+  // ── トップ ──
+  const remaining = history ? Math.max(0, history.dailyLimit - history.usedToday) : null;
   return (
     <main className="liff">
       <LiffHeader title="50問テスト" />
       {error && <div className="alert error">{error}</div>}
       <div className="card">
         <p>
-          衛生検査の知識確認テストです。全 {me.testQuestionCount} 問、{me.testPassScore} 問以上の正解で合格です。
+          衛生巡回の手順についての<strong>○×テスト</strong>です。全 {me.testQuestionCount} 問、{me.testPassScore} 問以上の正解で合格です。
         </p>
-        <p className="muted small">途中で画面を閉じると回答は保存されません。</p>
-        <button className="btn primary block lg mt" disabled={busy} onClick={start}>
-          テストを始める
+        <p className="muted small">・問題と順番は毎回ランダムに変わります</p>
+        <p className="muted small">・回答するとすぐに正解が表示されます（回答のやり直しはできません）</p>
+        <p className="muted small">・受験は 1 日 {me.testDailyLimit} 回までです（途中でやめた回も 1 回に数えます）</p>
+        {remaining !== null && (
+          <p className="mt">
+            本日の残り受験回数：<strong>{remaining}</strong> 回
+          </p>
+        )}
+        <button className="btn primary block lg mt" disabled={busy || remaining === 0} onClick={start}>
+          {remaining === 0 ? "本日の受験回数に達しました" : "テストを始める"}
         </button>
       </div>
       <h2 className="mt">受験履歴</h2>
       {!history && <p className="muted">読み込み中…</p>}
-      {history?.length === 0 && <p className="muted">まだ受験していません。</p>}
-      {history?.map((h) => (
+      {history?.attempts.length === 0 && <p className="muted">まだ受験していません。</p>}
+      {history?.attempts.map((h) => (
         <div className="card row between" key={h.id}>
-          <span>{new Date(h.submitted_at).toLocaleDateString("ja-JP")}</span>
+          <span>{new Date(h.submitted_at).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
           <span>
             {h.score} / {h.total}
           </span>
