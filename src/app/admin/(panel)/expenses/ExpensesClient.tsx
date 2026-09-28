@@ -4,14 +4,16 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/lib/client";
 import { EXPENSE_STATUS, fmtDate, yen } from "@/lib/format";
-import type { TrainLeg } from "@/lib/expense";
+import { mapsDirUrl, type TrainLeg } from "@/lib/expense";
 
 export type ExpenseRow = {
   id: string;
   use_date: string;
   transport: "car" | "train";
   distance_km: number | null;
-  rate_per_km: number | null;
+  route_from: string;
+  route_to: string;
+  round_trip: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -34,12 +36,12 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
   const [busy, setBusy] = useState(false);
 
   const totals = useMemo(() => {
-    const m = new Map<string, { count: number; amount: number }>();
+    const m = new Map<string, { count: number; amount: number; km: number }>();
     for (const r of rows) {
       if (r.status === "rejected") continue;
       const k = r.inspector?.name ?? "?";
-      const t = m.get(k) ?? { count: 0, amount: 0 };
-      m.set(k, { count: t.count + 1, amount: t.amount + r.amount });
+      const t = m.get(k) ?? { count: 0, amount: 0, km: 0 };
+      m.set(k, { count: t.count + 1, amount: t.amount + r.amount, km: t.km + Number(r.distance_km ?? 0) });
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], "ja"));
   }, [rows]);
@@ -81,7 +83,7 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
           <div className="chips">
             {totals.map(([name, t]) => (
               <span key={name} className="chip no" style={{ color: "var(--text)", cursor: "default" }}>
-                {name}：{t.count} 件 <strong>{yen(t.amount)}</strong>
+                {name}：{t.count} 件 <strong>{yen(t.amount)}</strong>{t.km > 0 && <> ／ 車 <strong>{Math.round(t.km * 10) / 10}km</strong></>}
               </span>
             ))}
           </div>
@@ -200,7 +202,16 @@ function Detail({ r }: { r: ExpenseRow }) {
   if (r.transport === "car") {
     return (
       <>
-        {r.distance_km}km × {r.rate_per_km}円{r.parking_fee > 0 && ` ＋ 駐車場 ${yen(r.parking_fee)}`}
+        <strong>{r.distance_km}km</strong>
+        {r.round_trip && "（往復）"}
+        {r.parking_fee > 0 && ` ／ 駐車場 ${yen(r.parking_fee)}`}
+        {(r.route_from || r.route_to) && (
+          <div>
+            <a href={mapsDirUrl(r.route_from, r.route_to)} target="_blank" rel="noreferrer">
+              {r.route_from} → {r.route_to}
+            </a>
+          </div>
+        )}
         {r.receipt_paths.length > 0 && " 🧾"}
       </>
     );

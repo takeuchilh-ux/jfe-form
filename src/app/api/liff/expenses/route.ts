@@ -2,8 +2,7 @@ import crypto from "node:crypto";
 import { handle, isDate, isMonth, isUuid, str, bad } from "@/lib/api";
 import { currentInspector } from "@/lib/inspector";
 import { db, must, RECEIPT_BUCKET } from "@/lib/supabase";
-import { getSettings } from "@/lib/data";
-import { carTotal, trainTotal, type TrainLeg } from "@/lib/expense";
+import { trainTotal, type TrainLeg } from "@/lib/expense";
 import { monthRange, thisMonthJst, todayJst } from "@/lib/format";
 
 const MAX_FILES = 5;
@@ -27,7 +26,7 @@ export const GET = handle(async (req: Request) => {
   const expenses = must(
     await db()
       .from("kensa_expenses")
-      .select("id,use_date,transport,distance_km,rate_per_km,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,inspection:kensa_inspections(store:kensa_stores(name))")
+      .select("id,use_date,transport,distance_km,route_from,route_to,round_trip,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,inspection:kensa_inspections(store:kensa_stores(name))")
       .eq("inspector_id", me.id)
       .gte("use_date", start)
       .lt("use_date", end)
@@ -39,18 +38,24 @@ export const GET = handle(async (req: Request) => {
   const assigned = must(
     await db()
       .from("kensa_assignments")
-      .select("inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,store:kensa_stores(name))")
+      .select("inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,store:kensa_stores(name,address))")
       .eq("inspector_id", me.id)
       .gte("inspection.inspection_date", from)
       .lte("inspection.inspection_date", todayJst())
       .neq("inspection.status", "cancelled"),
-  ) as unknown as { inspection: { id: string; inspection_date: string; time_slot: string; store: { name: string } | null } }[];
+  ) as unknown as { inspection: { id: string; inspection_date: string; time_slot: string; store: { name: string; address: string } | null } }[];
 
   return {
     month,
     expenses: expenses.map(({ receipt_paths, ...e }) => ({ ...e, receipt_count: receipt_paths.length })),
     inspections: assigned
-      .map(({ inspection: i }) => ({ id: i.id, date: i.inspection_date, time: i.time_slot, store: i.store?.name ?? "" }))
+      .map(({ inspection: i }) => ({
+        id: i.id,
+        date: i.inspection_date,
+        time: i.time_slot,
+        store: i.store?.name ?? "",
+        address: i.store?.address ?? "",
+      }))
       .sort((a, b) => b.date.localeCompare(a.date)),
   };
 });
@@ -88,12 +93,14 @@ export const POST = handle(async (req: Request) => {
     if (!Number.isFinite(distance) || distance <= 0 || distance > 2000) bad("走行距離（km）を正しく入力してください");
     if (!Number.isFinite(parking) || parking < 0 || parking > 100000) bad("駐車場代を正しく入力してください");
     if (parking > 0 && !files.length) bad("駐車場代がある場合はレシート画像を添付してください");
-    const { car_rate_per_km } = await getSettings();
+    // 車は距離（km）を記録。金額は駐車場代のみ（距離の精算方法は管理側で決定）
     Object.assign(row, {
       distance_km: Math.round(distance * 10) / 10,
-      rate_per_km: car_rate_per_km,
+      route_from: str(form.get("route_from"), 300),
+      route_to: str(form.get("route_to"), 300),
+      round_trip: form.get("round_trip") === "1",
       parking_fee: parking,
-      amount: carTotal(Math.round(distance * 10) / 10, car_rate_per_km, parking),
+      amount: parking,
     });
   } else {
     let legs: TrainLeg[];

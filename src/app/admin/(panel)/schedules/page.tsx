@@ -22,7 +22,7 @@ export default async function SchedulesPage({ searchParams }: Props) {
         inspections={inspections}
         stores={stores}
         inspectorNames={Object.fromEntries(inspectors.map((i) => [i.id, i.name]))}
-        linkedCount={inspectors.filter((i) => i.active && i.line_user_id).length}
+        linkedCount={inspectors.filter((i) => i.active && i.approved_at && i.line_user_id).length}
       />
     </>
   );

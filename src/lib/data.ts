@@ -2,13 +2,12 @@ import "server-only";
 import { db, maybe, must } from "./supabase";
 
 export type Settings = {
-  car_rate_per_km: number;
   test_question_count: number;
   test_pass_score: number;
 };
 
 export async function getSettings(): Promise<Settings> {
-  return must(await db().from("kensa_settings").select("car_rate_per_km,test_question_count,test_pass_score").eq("id", 1).single());
+  return must(await db().from("kensa_settings").select("test_question_count,test_pass_score").eq("id", 1).single());
 }
 
 export type Store = {
@@ -24,16 +23,26 @@ export type Store = {
 export type Inspector = {
   id: string;
   name: string;
+  last_name: string;
+  first_name: string;
   name_kana: string;
   phone: string;
   email: string;
+  address: string;
   area: string;
   notes: string;
   active: boolean;
+  approved_at: string | null;
+  bank_name: string;
+  branch_name: string;
+  branch_number: string;
+  account_type: string;
+  account_number: string;
+  account_holder: string;
   line_user_id: string | null;
   line_display_name: string;
-  link_code: string;
   linked_at: string | null;
+  created_at: string;
 };
 
 export type Period = {
@@ -82,8 +91,8 @@ export async function getInspections(periodId: string): Promise<InspectionRow[]>
 }
 
 export async function listInspectors(onlyActive = false): Promise<Inspector[]> {
-  let q = db().from("kensa_inspectors").select("*").order("name_kana").order("name");
-  if (onlyActive) q = q.eq("active", true);
+  let q = db().from("kensa_inspectors").select("*").order("created_at");
+  if (onlyActive) q = q.eq("active", true).not("approved_at", "is", null);
   return must(await q) as Inspector[];
 }
 

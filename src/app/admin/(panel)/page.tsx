@@ -20,7 +20,7 @@ export default async function Dashboard() {
   );
   const [{ count: pendingExpenses }, { count: unlinked }] = await Promise.all([
     db().from("kensa_expenses").select("id", { count: "exact", head: true }).eq("status", "submitted"),
-    db().from("kensa_inspectors").select("id", { count: "exact", head: true }).eq("active", true).is("line_user_id", null),
+    db().from("kensa_inspectors").select("id", { count: "exact", head: true }).eq("active", true).is("approved_at", null),
   ]);
 
   return (
@@ -33,7 +33,7 @@ export default async function Dashboard() {
         </Link>
         <Link href="/admin/inspectors" className="stat">
           <div className="num">{unlinked ?? 0}</div>
-          <div className="lbl">LINE 未連携の検査員</div>
+          <div className="lbl">承認待ちの検査員</div>
         </Link>
       </div>
       {summaries.map((s) => (

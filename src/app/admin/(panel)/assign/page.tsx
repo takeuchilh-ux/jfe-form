@@ -27,7 +27,9 @@ export default async function AssignPage({ searchParams }: Props) {
           periodId={period.id}
           periodStatus={period.status}
           inspections={inspections}
-          inspectors={inspectors.map((i) => ({ id: i.id, name: i.name, active: i.active, linked: !!i.line_user_id }))}
+          inspectors={inspectors
+            .filter((i) => i.approved_at)
+            .map((i) => ({ id: i.id, name: i.name, active: i.active, linked: !!i.line_user_id }))}
         />
       )}
     </>

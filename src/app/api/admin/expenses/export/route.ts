@@ -8,7 +8,9 @@ type Row = {
   use_date: string;
   transport: string;
   distance_km: number | null;
-  rate_per_km: number | null;
+  route_from: string;
+  route_to: string;
+  round_trip: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -32,12 +34,12 @@ export const GET = handle(async (req: Request) => {
   const rows = must(
     await db()
       .from("kensa_expenses")
-      .select("use_date,transport,distance_km,rate_per_km,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),inspection:kensa_inspections(store:kensa_stores(name))")
+      .select("use_date,transport,distance_km,route_from,route_to,round_trip,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),inspection:kensa_inspections(store:kensa_stores(name))")
       .gte("use_date", start)
       .lt("use_date", end)
       .order("use_date"),
   ) as unknown as Row[];
-  const header = ["利用日", "検査員", "店舗", "交通手段", "距離(km)", "単価(円/km)", "駐車場代", "電車区間", "金額", "状態", "備考"];
+  const header = ["利用日", "検査員", "店舗", "交通手段", "距離(km)", "経路", "駐車場代", "電車区間", "金額(電車運賃/駐車場代)", "状態", "備考"];
   const lines = rows.map((r) =>
     [
       r.use_date,
@@ -45,7 +47,7 @@ export const GET = handle(async (req: Request) => {
       r.inspection?.store?.name,
       r.transport === "car" ? "車" : "電車",
       r.distance_km ?? "",
-      r.rate_per_km ?? "",
+      r.transport === "car" ? `${r.route_from}→${r.route_to}${r.round_trip ? "(往復)" : ""}` : "",
       r.transport === "car" ? r.parking_fee : "",
       (r.train_legs ?? []).map((l) => `${l.from}→${l.to} ${l.fare}円${l.round_trip ? "(往復)" : ""}`).join(" / "),
       r.amount,

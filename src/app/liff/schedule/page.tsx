@@ -20,6 +20,16 @@ export default function SchedulePage() {
   const [month, setMonth] = useState(() => new URLSearchParams(location.search).get("month") ?? thisMonthJst());
   const [items, setItems] = useState<Item[] | null>(null);
   const [error, setError] = useState("");
+  const [offer, setOffer] = useState<{ month: string; unanswered: number } | null>(null);
+
+  // 回答受付中のスケジュールがあれば案内（リッチメニューに回答ボタンがないため）
+  useEffect(() => {
+    api<{ period: { year_month: string; open: boolean } | null; inspections: { answer: string | null }[] }>("/api/liff/offers")
+      .then((r) => {
+        if (r.period?.open) setOffer({ month: r.period.year_month, unanswered: r.inspections.filter((i) => !i.answer).length });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setItems(null);
@@ -41,6 +51,13 @@ export default function SchedulePage() {
           ▶
         </button>
       </div>
+      {offer && (
+        <Link href={`/liff/offers?month=${offer.month}`} className="card" style={{ display: "block", borderLeft: "4px solid var(--warn)", color: "var(--text)" }}>
+          📋 <strong>{fmtMonth(offer.month)}</strong>のスケジュールを回答受付中です
+          {offer.unanswered > 0 ? `（未回答 ${offer.unanswered} 件）` : "（回答済み・変更できます）"}
+          <span style={{ float: "right" }}>›</span>
+        </Link>
+      )}
       {error && <div className="alert error">{error}</div>}
       {!items && !error && <p className="muted">読み込み中…</p>}
       {items?.length === 0 && (

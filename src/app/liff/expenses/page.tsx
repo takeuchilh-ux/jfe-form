@@ -5,14 +5,16 @@ import LiffHeader from "@/components/LiffHeader";
 import { useMe } from "@/components/LiffProvider";
 import { api, errMsg, shrinkImage } from "@/lib/client";
 import { EXPENSE_STATUS, fmtDate, fmtMonth, shiftMonth, thisMonthJst, todayJst, yen } from "@/lib/format";
-import { carTotal, trainTotal, type TrainLeg } from "@/lib/expense";
+import { mapsDirUrl, trainTotal, type TrainLeg } from "@/lib/expense";
 
 type Expense = {
   id: string;
   use_date: string;
   transport: "car" | "train";
   distance_km: number | null;
-  rate_per_km: number | null;
+  route_from: string;
+  route_to: string;
+  round_trip: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -22,7 +24,7 @@ type Expense = {
   receipt_count: number;
   inspection: { store: { name: string } | null } | null;
 };
-type Insp = { id: string; date: string; time: string; store: string };
+type Insp = { id: string; date: string; time: string; store: string; address: string };
 type Data = { month: string; expenses: Expense[]; inspections: Insp[] };
 
 const BADGE: Record<string, string> = { submitted: "info", approved: "ok", rejected: "ng", paid: "" };
@@ -62,9 +64,9 @@ export default function ExpensesPage() {
         inspections={data.inspections}
         initialInspection={newFor}
         onCancel={() => setNewFor(null)}
-        onDone={(amount) => {
+        onDone={() => {
           setNewFor(null);
-          setDone(`${yen(amount)} で申請しました`);
+          setDone("申請しました");
           setMonth(thisMonthJst());
           load(thisMonthJst());
         }}
@@ -72,7 +74,9 @@ export default function ExpensesPage() {
     );
   }
 
-  const total = data?.expenses.filter((e) => e.status !== "rejected").reduce((s, e) => s + e.amount, 0) ?? 0;
+  const valid = data?.expenses.filter((e) => e.status !== "rejected") ?? [];
+  const total = valid.filter((e) => e.transport === "train").reduce((s, e) => s + e.amount, 0);
+  const km = Math.round(valid.reduce((s, e) => s + Number(e.distance_km ?? 0), 0) * 10) / 10;
   return (
     <main className="liff">
       <LiffHeader title="交通費申請" />
@@ -86,7 +90,7 @@ export default function ExpensesPage() {
           ◀
         </button>
         <strong>
-          {fmtMonth(month)} 合計 {yen(total)}
+          {fmtMonth(month)}　電車 {yen(total)} ／ 車 {km} km
         </strong>
         <button className="btn sm" onClick={() => setMonth(shiftMonth(month, 1))}>
           ▶
@@ -105,11 +109,11 @@ export default function ExpensesPage() {
           {e.inspection?.store && <div className="small">{e.inspection.store.name}</div>}
           <div className="small muted">
             {e.transport === "car"
-              ? `${e.distance_km}km × ${e.rate_per_km}円${e.parking_fee ? ` ＋ 駐車場 ${yen(e.parking_fee)}` : ""}${e.receipt_count ? `（レシート ${e.receipt_count} 枚）` : ""}`
+              ? `${e.route_from && `${e.route_from} → ${e.route_to} `}${e.round_trip ? "（往復）" : ""}${e.parking_fee ? ` ／ 駐車場 ${yen(e.parking_fee)}` : ""}${e.receipt_count ? `（レシート ${e.receipt_count} 枚）` : ""}`
               : e.train_legs.map((l) => `${l.from}→${l.to} ${yen(l.fare)}${l.round_trip ? "×往復" : ""}`).join(" ／ ")}
           </div>
           <div className="row between mt">
-            <strong style={{ fontSize: 18 }}>{yen(e.amount)}</strong>
+            <strong style={{ fontSize: 18 }}>{e.transport === "car" ? `${e.distance_km} km` : yen(e.amount)}</strong>
             {["submitted", "rejected"].includes(e.status) && (
               <button className="btn sm danger" onClick={() => withdraw(e.id)}>
                 取り下げ
@@ -132,7 +136,7 @@ function NewExpense({
   inspections: Insp[];
   initialInspection: string;
   onCancel: () => void;
-  onDone: (amount: number) => void;
+  onDone: () => void;
 }) {
   const { me } = useMe();
   const init = inspections.find((i) => i.id === initialInspection);
@@ -140,6 +144,12 @@ function NewExpense({
   const [date, setDate] = useState(init?.date ?? todayJst());
   const [transport, setTransport] = useState<"car" | "train">("train");
   const [distance, setDistance] = useState("");
+  const [routeFrom, setRouteFrom] = useState(me.address);
+  const [routeTo, setRouteTo] = useState(init?.address ?? "");
+  const [roundTrip, setRoundTrip] = useState(true);
+  const [oneWayKm, setOneWayKm] = useState<number | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [routeMsg, setRouteMsg] = useState("");
   const [parking, setParking] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [legs, setLegs] = useState<TrainLeg[]>([{ from: "", to: "", fare: 0, round_trip: true }]);
@@ -147,13 +157,35 @@ function NewExpense({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const amount =
-    transport === "car" ? carTotal(Math.round(Number(distance || 0) * 10) / 10, me.carRatePerKm, Number(parking || 0)) : trainTotal(legs);
+  const amount = trainTotal(legs);
+
+  async function searchRoute() {
+    setSearching(true);
+    setRouteMsg("");
+    try {
+      const r = await api<{ km: number; minutes: number | null }>("/api/liff/distance", { body: { from: routeFrom, to: routeTo } });
+      setOneWayKm(r.km);
+      setDistance(String(roundTrip ? Math.round(r.km * 20) / 10 : r.km));
+      setRouteMsg(`片道 ${r.km} km${r.minutes ? `（約 ${r.minutes} 分）` : ""}`);
+    } catch (err) {
+      setRouteMsg(errMsg(err));
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function toggleRound(v: boolean) {
+    setRoundTrip(v);
+    if (oneWayKm !== null) setDistance(String(v ? Math.round(oneWayKm * 20) / 10 : oneWayKm));
+  }
 
   function pickInspection(id: string) {
     setInspectionId(id);
     const i = inspections.find((x) => x.id === id);
-    if (i) setDate(i.date);
+    if (i) {
+      setDate(i.date);
+      if (i.address) setRouteTo(i.address);
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -168,13 +200,16 @@ function NewExpense({
       if (inspectionId) fd.set("inspection_id", inspectionId);
       if (transport === "car") {
         fd.set("distance_km", distance);
+        fd.set("route_from", routeFrom);
+        fd.set("route_to", routeTo);
+        fd.set("round_trip", roundTrip ? "1" : "0");
         fd.set("parking_fee", parking || "0");
         for (const f of files) fd.append("receipts", await shrinkImage(f));
       } else {
         fd.set("train_legs", JSON.stringify(legs));
       }
-      const r = await api<{ amount: number }>("/api/liff/expenses", { form: fd });
-      onDone(r.amount);
+      await api("/api/liff/expenses", { form: fd });
+      onDone();
     } catch (err) {
       setError(errMsg(err));
       setBusy(false);
@@ -228,12 +263,51 @@ function NewExpense({
         {transport === "car" ? (
           <div className="card">
             <label className="field">
-              <span>走行距離（km・往復合計）</span>
-              <input type="number" inputMode="decimal" step="0.1" min="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} required />
+              <span>出発地</span>
+              <input type="text" value={routeFrom} onChange={(e) => setRouteFrom(e.target.value)} placeholder="自宅住所・駅名など" />
             </label>
-            <p className="muted small">単価 {me.carRatePerKm} 円/km</p>
             <label className="field">
-              <span>駐車場代（円）</span>
+              <span>目的地</span>
+              <input type="text" value={routeTo} onChange={(e) => setRouteTo(e.target.value)} placeholder="店舗の住所" />
+            </label>
+            <div className="row" style={{ marginBottom: 12 }}>
+              {me.routeSearch && (
+                <button type="button" className="btn primary" disabled={searching || !routeFrom || !routeTo} onClick={searchRoute}>
+                  {searching ? "検索中…" : "🔍 経路検索して距離を反映"}
+                </button>
+              )}
+              {routeFrom && routeTo && (
+                <a className="btn" href={mapsDirUrl(routeFrom, routeTo)} target="_blank" rel="noreferrer">
+                  🗺 Googleマップで見る
+                </a>
+              )}
+            </div>
+            {routeMsg && <p className="small muted">{routeMsg}</p>}
+            {routeFrom && routeTo && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY && (
+              <iframe
+                title="経路"
+                style={{ width: "100%", height: 220, border: 0, borderRadius: 8, marginBottom: 12 }}
+                loading="lazy"
+                src={`https://www.google.com/maps/embed/v1/directions?${new URLSearchParams({
+                  key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY,
+                  origin: routeFrom,
+                  destination: routeTo,
+                  mode: "driving",
+                })}`}
+              />
+            )}
+            <div className="row" style={{ flexWrap: "nowrap", alignItems: "flex-end" }}>
+              <label className="field grow">
+                <span>走行距離（km）</span>
+                <input type="number" inputMode="decimal" step="0.1" min="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} required />
+              </label>
+              <label className="field row nowrap">
+                <input type="checkbox" checked={roundTrip} onChange={(e) => toggleRound(e.target.checked)} /> 往復
+              </label>
+            </div>
+            {!me.routeSearch && <p className="muted small">Googleマップで経路を確認し、距離を入力してください。</p>}
+            <label className="field">
+              <span>駐車場代（円・ある場合のみ）</span>
               <input type="number" inputMode="numeric" min="0" value={parking} onChange={(e) => setParking(e.target.value)} placeholder="0" />
             </label>
             <label className="field">
@@ -292,8 +366,10 @@ function NewExpense({
             <input type="text" value={note} onChange={(e) => setNote(e.target.value)} />
           </label>
           <div className="row between">
-            <span>申請金額</span>
-            <strong style={{ fontSize: 22 }}>{yen(amount)}</strong>
+            <span>{transport === "car" ? "走行距離" : "申請金額"}</span>
+            <strong style={{ fontSize: 22 }}>
+              {transport === "car" ? `${distance || 0} km${Number(parking) > 0 ? ` ＋ 駐車場 ${yen(Number(parking))}` : ""}` : yen(amount)}
+            </strong>
           </div>
         </div>
         <button className="btn primary block lg" disabled={busy}>

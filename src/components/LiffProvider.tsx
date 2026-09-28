@@ -1,11 +1,22 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { api, ApiError, errMsg } from "@/lib/client";
+import ProfileFields, { EMPTY_PROFILE, type ProfileForm } from "./ProfileFields";
 
-export type Me = { id: string; name: string; carRatePerKm: number; testQuestionCount: number; testPassScore: number };
+export type Me = {
+  id: string;
+  name: string;
+  approved: boolean;
+  address: string;
+  routeSearch: boolean;
+  testQuestionCount: number;
+  testPassScore: number;
+};
 
-const Ctx = createContext<{ me: Me; close: () => void } | null>(null);
+const Ctx = createContext<{ me: Me; refresh: () => Promise<void> } | null>(null);
 
 export function useMe() {
   const c = useContext(Ctx);
@@ -15,7 +26,7 @@ export function useMe() {
 
 type State =
   | { step: "loading" }
-  | { step: "link"; idToken: string; lineName: string }
+  | { step: "register"; idToken: string; lineName: string }
   | { step: "ready"; me: Me }
   | { step: "error"; message: string };
 
@@ -23,19 +34,17 @@ const RETRY_KEY = "kensa_liff_relogin";
 
 export default function LiffProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>({ step: "loading" });
-  const [liffRef, setLiffRef] = useState<typeof import("@line/liff").default | null>(null);
+  const path = usePathname();
 
   const boot = useCallback(async () => {
     const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
     if (!liffId) return setState({ step: "error", message: "NEXT_PUBLIC_LIFF_ID が設定されていません" });
     const liff = (await import("@line/liff")).default;
-    setLiffRef(liff);
     await liff.init({ liffId });
 
     // 既存のセッションがあればそのまま利用
     try {
-      const me = await api<Me>("/api/liff/me");
-      return setState({ step: "ready", me });
+      return setState({ step: "ready", me: await api<Me>("/api/liff/me") });
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 401)) throw e;
     }
@@ -47,9 +56,9 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
     const idToken = liff.getIDToken();
     if (!idToken) throw new Error("LINE の ID トークンを取得できませんでした。LIFF の scope に openid を追加してください");
     try {
-      const r = await api<{ ok?: boolean; needLink?: boolean; lineName?: string }>("/api/liff/session", { body: { idToken } });
+      const r = await api<{ ok?: boolean; needRegister?: boolean; lineName?: string }>("/api/liff/session", { body: { idToken } });
       sessionStorage.removeItem(RETRY_KEY);
-      if (r.needLink) return setState({ step: "link", idToken, lineName: r.lineName ?? "" });
+      if (r.needRegister) return setState({ step: "register", idToken, lineName: r.lineName ?? "" });
       setState({ step: "ready", me: await api<Me>("/api/liff/me") });
     } catch (e) {
       // ID トークンの期限切れ → 1 回だけ再ログイン
@@ -67,10 +76,9 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
     boot().catch((e) => setState({ step: "error", message: errMsg(e) }));
   }, [boot]);
 
-  const close = useCallback(() => {
-    if (liffRef?.isInClient()) liffRef.closeWindow();
-    else location.href = "/liff";
-  }, [liffRef]);
+  const refresh = useCallback(async () => {
+    setState({ step: "ready", me: await api<Me>("/api/liff/me") });
+  }, []);
 
   if (state.step === "loading") return <main className="liff muted" style={{ paddingTop: 80, textAlign: "center" }}>読み込み中…</main>;
   if (state.step === "error")
@@ -82,12 +90,30 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
         </button>
       </main>
     );
-  if (state.step === "link") return <LinkForm idToken={state.idToken} lineName={state.lineName} onDone={() => location.reload()} />;
-  return <Ctx.Provider value={{ me: state.me, close }}>{children}</Ctx.Provider>;
+  if (state.step === "register") return <RegisterForm idToken={state.idToken} onDone={() => refresh().catch(() => location.reload())} />;
+
+  // 承認前は基本情報の確認・変更のみ利用可能
+  if (!state.me.approved && path !== "/liff/profile") {
+    return (
+      <main className="liff" style={{ paddingTop: 32 }}>
+        <h1>ご登録ありがとうございます</h1>
+        <div className="card">
+          <p>
+            {state.me.name} さんの基本情報を受け付けました。現在、<strong>管理者の承認待ち</strong>です。
+          </p>
+          <p className="muted">承認されると LINE でお知らせします。</p>
+          <Link className="btn block mt" href="/liff/profile">
+            登録内容を確認・変更する
+          </Link>
+        </div>
+      </main>
+    );
+  }
+  return <Ctx.Provider value={{ me: state.me, refresh }}>{children}</Ctx.Provider>;
 }
 
-function LinkForm({ idToken, lineName, onDone }: { idToken: string; lineName: string; onDone: () => void }) {
-  const [code, setCode] = useState("");
+function RegisterForm({ idToken, onDone }: { idToken: string; onDone: () => void }) {
+  const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent) {
@@ -95,36 +121,23 @@ function LinkForm({ idToken, lineName, onDone }: { idToken: string; lineName: st
     setBusy(true);
     setError("");
     try {
-      await api("/api/liff/link", { body: { idToken, code } });
+      await api("/api/liff/register", { body: { idToken, profile: form } });
       onDone();
     } catch (err) {
       setError(errMsg(err));
       setBusy(false);
+      window.scrollTo({ top: 0 });
     }
   }
   return (
-    <main className="liff" style={{ paddingTop: 32 }}>
-      <h1>検査員アカウントの連携</h1>
+    <main className="liff">
+      <h1>基本情報の登録</h1>
+      <p className="muted">検査員としてのご登録に必要な情報を入力してください。* は必須です。</p>
+      {error && <div className="alert error">{error}</div>}
       <form className="card" onSubmit={submit}>
-        <p>
-          {lineName && `${lineName} さん、`}はじめに管理者からお知らせした<strong>連携コード（6 桁）</strong>を入力してください。
-        </p>
-        {error && <div className="alert error">{error}</div>}
-        <label className="field">
-          <span>連携コード</span>
-          <input
-            type="text"
-            inputMode="text"
-            autoCapitalize="characters"
-            value={code}
-            maxLength={12}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            style={{ fontSize: 24, letterSpacing: 6, textAlign: "center" }}
-            required
-          />
-        </label>
-        <button className="btn primary block lg" disabled={busy}>
-          連携する
+        <ProfileFields value={form} onChange={(p) => setForm((f) => ({ ...f, ...p }))} />
+        <button className="btn primary block lg mt" disabled={busy}>
+          {busy ? "登録中…" : "登録する"}
         </button>
       </form>
     </main>

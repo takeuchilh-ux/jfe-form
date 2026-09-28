@@ -29,13 +29,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
   return (
     <form className="card" style={{ maxWidth: 480 }} onSubmit={save}>
       {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
-      <h2>交通費</h2>
-      <label className="field">
-        <span>車：1km あたりの単価（円）</span>
-        <input type="number" min={0} value={s.car_rate_per_km} onChange={(e) => setS({ ...s, car_rate_per_km: Number(e.target.value) })} />
-      </label>
-      <p className="muted small">変更後の申請から適用されます（申請済みの金額は変わりません）。</p>
-      <h2 className="mt">50問テスト</h2>
+      <h2>50問テスト</h2>
       <label className="field">
         <span>出題数</span>
         <input type="number" min={1} max={200} value={s.test_question_count} onChange={(e) => setS({ ...s, test_question_count: Number(e.target.value) })} />

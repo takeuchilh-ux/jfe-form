@@ -28,13 +28,13 @@ export const POST = handle(async (_req: Request, { params }: Ctx) => {
   );
 
   const inspectors = must(
-    await db().from("kensa_inspectors").select("line_user_id").eq("active", true).not("line_user_id", "is", null),
+    await db().from("kensa_inspectors").select("line_user_id").eq("active", true).not("approved_at", "is", null).not("line_user_id", "is", null),
   ) as { line_user_id: string }[];
   const to = inspectors.map((i) => i.line_user_id);
 
   const lines = [`検査件数：${count} 件`];
   if (period.response_deadline) lines.push(`回答期限：${fmtDate(period.response_deadline)}`);
-  lines.push("対応可能な検査を選んで回答してください。");
+  lines.push("対応可能な検査に「可」、難しい検査に「不可」を選んで回答してください。");
 
   let sent = 0;
   let lineError: string | null = null;

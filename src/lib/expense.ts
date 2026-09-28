@@ -5,7 +5,8 @@ export function trainTotal(legs: TrainLeg[]) {
   return legs.reduce((sum, l) => sum + Math.max(0, Math.round(l.fare)) * (l.round_trip ? 2 : 1), 0);
 }
 
-/** 車：距離 × 単価（円未満切り捨て）＋駐車場代 */
-export function carTotal(distanceKm: number, ratePerKm: number, parkingFee: number) {
-  return Math.floor(Math.max(0, distanceKm) * Math.max(0, ratePerKm)) + Math.max(0, Math.round(parkingFee));
+/** Google マップの経路検索 URL（車） */
+export function mapsDirUrl(from: string, to: string) {
+  const q = new URLSearchParams({ api: "1", origin: from, destination: to, travelmode: "driving" });
+  return `https://www.google.com/maps/dir/?${q}`;
 }

@@ -86,7 +86,7 @@ label.field { display: block; margin-bottom: 12px; }
 label.field > span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
 input[type=text], input[type=email], input[type=password], input[type=number], input[type=date], input[type=month], input[type=tel], select, textarea {
   width: 100%; font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid var(--border);
-  border-radius: 8px; background: #fff; color: var(--text);
+  border-radius: 8px; background: #fff; color: var(--text); min-height: 42px;
 }
 input.inline, select.inline { width: auto; }
 textarea { min-height: 80px; resize: vertical; }

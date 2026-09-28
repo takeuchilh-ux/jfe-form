@@ -55,7 +55,7 @@ export default function SchedulesClient({ month, period, inspections, stores, in
   async function release() {
     const again = period!.status !== "draft";
     const ok = confirm(
-      `${fmtMonth(month)}のスケジュール（${active.length} 件）を、LINE 連携済みの検査員 ${linkedCount} 名へ${again ? "再" : ""}通知します。よろしいですか？`,
+      `${fmtMonth(month)}のスケジュール（${active.length} 件）を、承認済みの検査員 ${linkedCount} 名へ LINE で${again ? "再" : ""}通知します。よろしいですか？`,
     );
     if (!ok) return;
     await run(async () => {
