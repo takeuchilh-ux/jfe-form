@@ -12,7 +12,7 @@ if (password.length < 10) {
   console.error("パスワードは 10 文字以上にしてください");
   process.exit(1);
 }
-const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+const db = createClient("https://filtkadnvdhjkkiawiiz.supabase.co", process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(), { auth: { persistSession: false } });
 const password_hash = await bcrypt.hash(password, 10);
 const { error } = await db
   .from("kensa_admins")

@@ -8,7 +8,7 @@ import { HttpError } from "@/lib/session";
  */
 export const POST = handle(async (req: Request) => {
   await currentInspector();
-  const key = process.env.GOOGLE_MAPS_API_KEY;
+  const key = process.env.GOOGLE_MAPS_API_KEY?.trim();
   if (!key) throw new HttpError(501, "経路検索は未設定です。距離を直接入力してください");
   const b = await body(req);
   const stops = (Array.isArray(b.stops) ? b.stops : []).map((s) => str(s, 300)).filter(Boolean);
