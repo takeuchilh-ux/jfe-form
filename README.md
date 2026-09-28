@@ -89,7 +89,7 @@ Google Cloud で **Routes API** を有効化し、API キーを `GOOGLE_MAPS_API
 cp .env.example .env.local   # 値を記入
 npm install
 node --env-file=.env.local scripts/create-admin.mjs you@example.com 'パスワード10文字以上' '管理者名'
-node --env-file=.env.local scripts/setup-richmenu.mjs   # リッチメニュー（scripts/richmenu/richmenu.png）を設定
+node --env-file=.env.local scripts/setup-richmenu.mjs   # リッチメニュー（public/richmenu.png）を設定（管理画面「設定」のボタンからも可）
 ```
 
 ### 6. 検査員の登録

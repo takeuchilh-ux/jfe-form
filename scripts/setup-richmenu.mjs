@@ -36,7 +36,7 @@ const { richMenuId } = await call("https://api.line.me/v2/bot/richmenu", {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(menu),
 });
-const image = await readFile(new URL("./richmenu/richmenu.png", import.meta.url));
+const image = await readFile(new URL("../public/richmenu.png", import.meta.url));
 await call(`https://api-data.line.me/v2/bot/richmenu/${richMenuId}/content`, {
   method: "POST",
   headers: { "Content-Type": "image/png" },
