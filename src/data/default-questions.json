@@ -1,0 +1,1332 @@
+[
+ {
+  "category": "身だしなみ",
+  "group_key": "cap",
+  "question": "帽子（ヘアーネット）は耳まで覆うように着用する。",
+  "correct": true,
+  "explanation": "帽子（ヘアーネット）は耳まで覆い、髪は帽子の中に収まるように束ねます。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "cap",
+  "question": "帽子（ヘアーネット）は、耳が出ていても問題ない。",
+  "correct": false,
+  "explanation": "帽子（ヘアーネット）は耳まで覆い、髪は帽子の中に収まるように束ねます。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "mask",
+  "question": "マスクは鼻から顎まで広げて着用する。",
+  "correct": true,
+  "explanation": "マスクは鼻から顎まで広げ、ノーズクリップを曲げて着用します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "mask",
+  "question": "マスクは口だけ覆っていれば、鼻は出ていてもよい。",
+  "correct": false,
+  "explanation": "マスクは鼻から顎まで広げ、ノーズクリップを曲げて着用します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "nail",
+  "question": "爪は短く切り、爪先の白い部分は1mm程度が目安である。",
+  "correct": true,
+  "explanation": "爪は短く切ります。爪先の白い部分は1mm程度が目安です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "nail",
+  "question": "爪先の白い部分が5mm程度あっても問題ない。",
+  "correct": false,
+  "explanation": "爪は短く切ります。爪先の白い部分は1mm程度が目安です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "manicure",
+  "question": "マニキュアや付け爪はつけない。",
+  "correct": true,
+  "explanation": "マニキュア・付け爪は色に関係なくつけません。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "manicure",
+  "question": "目立たない色であれば、マニキュアをしていてもよい。",
+  "correct": false,
+  "explanation": "マニキュア・付け爪は色に関係なくつけません。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "accessory",
+  "question": "イヤリング・ピアス・ネックレス・指輪などの装飾品は、訪問前に外す。",
+  "correct": true,
+  "explanation": "装飾品（イヤリング・ピアス・ネックレス・指輪など）は訪問前に外します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "accessory",
+  "question": "指輪は小さいものであれば、着けたまま点検してよい。",
+  "correct": false,
+  "explanation": "装飾品（イヤリング・ピアス・ネックレス・指輪など）は訪問前に外します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "watch",
+  "question": "腕時計は厨房に入る前に外す。",
+  "correct": true,
+  "explanation": "腕時計は厨房入室前に外します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "watch",
+  "question": "腕時計は着けたまま厨房に入ってよい。",
+  "correct": false,
+  "explanation": "腕時計は厨房入室前に外します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "coat",
+  "question": "白衣のボタンやチャックはすべて締めて着用する。",
+  "correct": true,
+  "explanation": "白衣はボタンやチャックをすべて締めて着用します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "coat",
+  "question": "白衣は前を開けたまま着用してよい。",
+  "correct": false,
+  "explanation": "白衣はボタンやチャックをすべて締めて着用します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "clothes",
+  "question": "訪問時は、シャツ・スラックスなど清潔感のある服装で訪問する。",
+  "correct": true,
+  "explanation": "清潔感のある服装で訪問します。汚れや薬品が付いた作業着は不可です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "clothes",
+  "question": "汚れや薬品が付いた作業着でも、訪問時の服装として問題ない。",
+  "correct": false,
+  "explanation": "清潔感のある服装で訪問します。汚れや薬品が付いた作業着は不可です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "cloth-coat",
+  "question": "布白衣を家庭で他の洗濯物と一緒に洗うのは不可である。",
+  "correct": true,
+  "explanation": "家庭で他のものと一緒に洗うと、ノロウイルス等の汚染リスクがあるため不可です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "cloth-coat",
+  "question": "布白衣は、家庭で他の洗濯物と一緒に洗ってよい。",
+  "correct": false,
+  "explanation": "家庭で他のものと一緒に洗うと、ノロウイルス等の汚染リスクがあるため不可です。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "shoes",
+  "question": "コックシューズ等の短靴を使う場合は、1日の最後に靴底や外側を洗浄する。",
+  "correct": true,
+  "explanation": "短靴を使う場合は、1日の最後に靴底や外側の周りを洗浄します。"
+ },
+ {
+  "category": "身だしなみ",
+  "group_key": "shoes",
+  "question": "コックシューズ等の短靴は、汚れが目立つまで洗浄しなくてよい。",
+  "correct": false,
+  "explanation": "短靴を使う場合は、1日の最後に靴底や外側の周りを洗浄します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "shoecover",
+  "question": "シューズカバーは1店舗ごとに交換する。",
+  "correct": true,
+  "explanation": "シューズカバーは破れやすいため、1店舗ごとに交換します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "shoecover",
+  "question": "シューズカバーは1日1枚を複数店舗で使い回してよい。",
+  "correct": false,
+  "explanation": "シューズカバーは破れやすいため、1店舗ごとに交換します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove",
+  "question": "衛生手袋は1店舗ごとに交換する。",
+  "correct": true,
+  "explanation": "衛生手袋は1店舗ごとに交換します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove",
+  "question": "衛生手袋は、1日同じものを使ってよい。",
+  "correct": false,
+  "explanation": "衛生手袋は1店舗ごとに交換します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove-color",
+  "question": "衛生手袋は、青色のニトリル・ラテックス手袋を使用する。",
+  "correct": true,
+  "explanation": "青色のニトリル・ラテックス手袋を使います。用意できない場合は衛生担当に連絡の上、別の色でも可です。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove-color",
+  "question": "衛生手袋の色は自由で、白や透明のものを連絡なしに使ってよい。",
+  "correct": false,
+  "explanation": "青色のニトリル・ラテックス手袋を使います。用意できない場合は衛生担当に連絡の上、別の色でも可です。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove-torn",
+  "question": "点検中に衛生手袋が破れたら、速やかに予備の手袋に交換する。",
+  "correct": true,
+  "explanation": "破れたら速やかに予備に交換し、破片が落ちていないか確認して持ち帰ります。"
+ },
+ {
+  "category": "準備",
+  "group_key": "glove-torn",
+  "question": "点検中に衛生手袋が破れても、点検が終わるまでそのまま使う。",
+  "correct": false,
+  "explanation": "破れたら速やかに予備に交換し、破片が落ちていないか確認して持ち帰ります。"
+ },
+ {
+  "category": "準備",
+  "group_key": "pen",
+  "question": "厨房に持ち込む筆記用具は、ノック式のボールペンを使う。",
+  "correct": true,
+  "explanation": "キャップの落下（異物混入）を防ぐため、ノック式を使います（キャップ式は不可）。"
+ },
+ {
+  "category": "準備",
+  "group_key": "pen",
+  "question": "厨房に持ち込む筆記用具は、キャップ式のボールペンがよい。",
+  "correct": false,
+  "explanation": "キャップの落下（異物混入）を防ぐため、ノック式を使います（キャップ式は不可）。"
+ },
+ {
+  "category": "準備",
+  "group_key": "swab-spare",
+  "question": "ふきふきチェックなどの指定スワブは、予備を含めて必要数を持参する。",
+  "correct": true,
+  "explanation": "拭き取りの失敗に備えて、予備を含めて持参します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "swab-spare",
+  "question": "ふきふきチェックは、ちょうど必要な数だけ持参すればよい。",
+  "correct": false,
+  "explanation": "拭き取りの失敗に備えて、予備を含めて持参します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "ice",
+  "question": "保冷剤は、クーラーバッグの容量に対して十分に保冷できる量を用意する。",
+  "correct": true,
+  "explanation": "保冷が不十分だと、持ち運び中に菌数が増える危険があります。"
+ },
+ {
+  "category": "準備",
+  "group_key": "ice",
+  "question": "保冷剤は少量で構わない。",
+  "correct": false,
+  "explanation": "保冷が不十分だと、持ち運び中に菌数が増える危険があります。"
+ },
+ {
+  "category": "準備",
+  "group_key": "tool-expire",
+  "question": "準備時に、検査ツールの期限が切れていないか確認する。",
+  "correct": true,
+  "explanation": "準備時にツールの期限切れがないか確認します。"
+ },
+ {
+  "category": "準備",
+  "group_key": "tool-expire",
+  "question": "検査ツールの使用期限は確認しなくてよい。",
+  "correct": false,
+  "explanation": "準備時にツールの期限切れがないか確認します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "fever",
+  "question": "検査当日に37.5℃以上の熱がある場合は、衛生担当へ連絡して指示を受ける。",
+  "correct": true,
+  "explanation": "37.5℃以上の熱や体調不良がある場合は、速やかにニイタカ衛生担当へ連絡して指示を受けます。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "fever",
+  "question": "37.5℃以上の熱があっても、予定どおり訪問してよい。",
+  "correct": false,
+  "explanation": "37.5℃以上の熱や体調不良がある場合は、速やかにニイタカ衛生担当へ連絡して指示を受けます。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "infection",
+  "question": "感染症の疑いがある場合は、店舗へ訪問しない。",
+  "correct": true,
+  "explanation": "感染症の疑いがある場合は訪問せず、衛生担当へ連絡します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "infection",
+  "question": "感染症の疑いがあっても、症状が軽ければ訪問してよい。",
+  "correct": false,
+  "explanation": "感染症の疑いがある場合は訪問せず、衛生担当へ連絡します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "health-check",
+  "question": "検査がある月は、毎日健康チェック（体温測定を含む）を行う。",
+  "correct": true,
+  "explanation": "実施月は毎日、体温測定を含む健康チェックを行い記録します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "health-check",
+  "question": "健康チェックは訪問する日だけ行えばよい。",
+  "correct": false,
+  "explanation": "実施月は毎日、体温測定を含む健康チェックを行い記録します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "stool-deadline",
+  "question": "検便報告書は、訪問する月の前月25日までに提出する。",
+  "correct": true,
+  "explanation": "検便報告書は実施月の前月25日までに提出します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "stool-deadline",
+  "question": "検便報告書は、訪問した月の月末までに提出すればよい。",
+  "correct": false,
+  "explanation": "検便報告書は実施月の前月25日までに提出します。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "stool-items",
+  "question": "検便の基本的な検査項目は、赤痢・サルモネラ・O157である。",
+  "correct": true,
+  "explanation": "基本は赤痢・サルモネラ・O157です（ユーザーによって項目が増える場合あり）。"
+ },
+ {
+  "category": "健康管理",
+  "group_key": "stool-items",
+  "question": "検便の検査項目は、一般生菌だけである。",
+  "correct": false,
+  "explanation": "基本は赤痢・サルモネラ・O157です（ユーザーによって項目が増える場合あり）。"
+ },
+ {
+  "category": "手順",
+  "group_key": "late",
+  "question": "時間指定の店舗に遅れそうな場合は、店舗に連絡する。",
+  "correct": true,
+  "explanation": "渋滞などで遅れそうな場合は店舗に連絡します（抜き打ちの場合は衛生担当へ）。"
+ },
+ {
+  "category": "手順",
+  "group_key": "late",
+  "question": "時間指定の店舗に遅れそうでも、連絡は不要である。",
+  "correct": false,
+  "explanation": "渋滞などで遅れそうな場合は店舗に連絡します（抜き打ちの場合は衛生担当へ）。"
+ },
+ {
+  "category": "手順",
+  "group_key": "confirm-store",
+  "question": "2回目以降の訪問でも、会社名・店舗名・電話番号を画面で見せて確認する。",
+  "correct": true,
+  "explanation": "思い込みによる間違いを防ぐため、毎回必ず確認します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "confirm-store",
+  "question": "2回目以降の訪問であれば、店舗の確認は省略してよい。",
+  "correct": false,
+  "explanation": "思い込みによる間違いを防ぐため、毎回必ず確認します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "card",
+  "question": "初めて訪問する店舗では名刺を渡し、衛生パトロールの趣旨を簡単に説明する。",
+  "correct": true,
+  "explanation": "初めての店舗では名刺を渡し、趣旨を簡単に説明します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "card",
+  "question": "初めて訪問する店舗でも、あいさつや説明はせずに点検を始める。",
+  "correct": false,
+  "explanation": "初めての店舗では名刺を渡し、趣旨を簡単に説明します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "changing",
+  "question": "着替えの場所と荷物置き場は、必ず店舗に確認する。",
+  "correct": true,
+  "explanation": "ホールでの着替えを嫌がる店舗もあるため、必ず場所を確認します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "changing",
+  "question": "着替えは、お客様から見えるホールで行ってよい。",
+  "correct": false,
+  "explanation": "ホールでの着替えを嫌がる店舗もあるため、必ず場所を確認します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "shoecover-timing",
+  "question": "シューズカバーは、厨房に入る直前に履く。",
+  "correct": true,
+  "explanation": "シューズカバーは厨房に入る直前に履きます。"
+ },
+ {
+  "category": "手順",
+  "group_key": "shoecover-timing",
+  "question": "シューズカバーは、自宅を出るときから履いていく。",
+  "correct": false,
+  "explanation": "シューズカバーは厨房に入る直前に履きます。"
+ },
+ {
+  "category": "手順",
+  "group_key": "handwash-enter",
+  "question": "厨房に入る際は、必ず手洗いを行う。",
+  "correct": true,
+  "explanation": "厨房に入る際は必ず手洗いを行い、その後に衛生手袋を着用します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "handwash-enter",
+  "question": "衛生手袋を着けるので、厨房に入る前の手洗いは不要である。",
+  "correct": false,
+  "explanation": "厨房に入る際は必ず手洗いを行い、その後に衛生手袋を着用します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "double-wash",
+  "question": "現場に手洗いマニュアルがない場合は、ニイタカ標準の手洗い（2度手洗い）を行う。",
+  "correct": true,
+  "explanation": "マニュアルがない場合はニイタカ標準の2度手洗いを行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "double-wash",
+  "question": "現場に手洗いマニュアルがない場合は、水で軽く1回流せばよい。",
+  "correct": false,
+  "explanation": "マニュアルがない場合はニイタカ標準の2度手洗いを行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "wash-time",
+  "question": "手洗いで石けんを使って擦り洗いする時間は、30秒以上が良好である。",
+  "correct": true,
+  "explanation": "擦り洗いは30秒以上が良好の目安です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "wash-time",
+  "question": "手洗いの擦り洗いは、5秒程度で十分である。",
+  "correct": false,
+  "explanation": "擦り洗いは30秒以上が良好の目安です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "behind",
+  "question": "厨房で作業者の後ろを通るときは「後ろ失礼します」と声をかける。",
+  "correct": true,
+  "explanation": "事故防止のため「後ろ失礼します」と声をかけます。"
+ },
+ {
+  "category": "手順",
+  "group_key": "behind",
+  "question": "作業の邪魔にならないよう、作業者の後ろは黙って通る。",
+  "correct": false,
+  "explanation": "事故防止のため「後ろ失礼します」と声をかけます。"
+ },
+ {
+  "category": "手順",
+  "group_key": "fridge-open",
+  "question": "冷蔵庫などのドアを開けるときは「○○開けます」と声に出す。",
+  "correct": true,
+  "explanation": "冷蔵庫などを開けるときは「○○開けます」と声に出します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "fridge-open",
+  "question": "冷蔵庫のドアは、声をかけずに開けてよい。",
+  "correct": false,
+  "explanation": "冷蔵庫などを開けるときは「○○開けます」と声に出します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "dirty-hand",
+  "question": "点検中に手が汚れた場合は、再度手洗いを行う。",
+  "correct": true,
+  "explanation": "手が汚れたら再度手洗いを行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "dirty-hand",
+  "question": "点検中に手が汚れても、点検が終わるまで手洗いはしない。",
+  "correct": false,
+  "explanation": "手が汚れたら再度手洗いを行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "trap-last",
+  "question": "グリストラップなど汚れやすい場所のチェックは、最後に行う。",
+  "correct": true,
+  "explanation": "汚れやすい場所のチェックは最後に行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "trap-last",
+  "question": "グリストラップのチェックは、最初に行うのがよい。",
+  "correct": false,
+  "explanation": "汚れやすい場所のチェックは最後に行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "order",
+  "question": "チェックはチェック表の順番にこだわらず、現場に合わせて行う。",
+  "correct": true,
+  "explanation": "現場を何度も行き来しないよう、現場に合わせて行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "order",
+  "question": "チェックは必ずチェック表の順番どおりに行う。",
+  "correct": false,
+  "explanation": "現場を何度も行き来しないよう、現場に合わせて行います。"
+ },
+ {
+  "category": "手順",
+  "group_key": "photo-problem",
+  "question": "問題点がある箇所は、すべて写真を撮る。",
+  "correct": true,
+  "explanation": "問題点がある箇所はすべて写真を撮ります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "photo-problem",
+  "question": "問題点は口頭で伝えれば、写真は不要である。",
+  "correct": false,
+  "explanation": "問題点がある箇所はすべて写真を撮ります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "photo-prev",
+  "question": "前回の指摘事項は、改善されていてもいなくても写真を撮る。",
+  "correct": true,
+  "explanation": "前回の指摘事項は、改善の有無に関係なく写真を撮ります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "photo-prev",
+  "question": "前回の指摘事項は、改善されていれば写真は不要である。",
+  "correct": false,
+  "explanation": "前回の指摘事項は、改善の有無に関係なく写真を撮ります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "check-all",
+  "question": "チェック表の項目は、漏れなくすべて確認してから報告する。",
+  "correct": true,
+  "explanation": "チェック表の項目はすべて確認・記入してから報告します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "check-all",
+  "question": "チェック表は、気になった項目だけ確認すればよい。",
+  "correct": false,
+  "explanation": "チェック表の項目はすべて確認・記入してから報告します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "priority3",
+  "question": "報告では、今回の問題点のうち優先改善項目（3か所）を必ず説明する。",
+  "correct": true,
+  "explanation": "前回の改善状況と、今回の優先改善項目（3か所）の報告は必須です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "priority3",
+  "question": "報告では、優先改善項目の説明は省略してよい。",
+  "correct": false,
+  "explanation": "前回の改善状況と、今回の優先改善項目（3か所）の報告は必須です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "sign",
+  "question": "点検結果を報告したら、立会い者のサイン（読める文字）をもらう。",
+  "correct": true,
+  "explanation": "サインの受領が検査完了の確認になり、報告書作成にも必要です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "sign",
+  "question": "立会い者のサインはもらわなくてもよい。",
+  "correct": false,
+  "explanation": "サインの受領が検査完了の確認になり、報告書作成にも必要です。"
+ },
+ {
+  "category": "手順",
+  "group_key": "duration",
+  "question": "1店舗の検査の所要時間は、40〜70分前後が目安である。",
+  "correct": true,
+  "explanation": "40〜70分前後が目安です。極端に長い・短いとクレームの原因になります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "duration",
+  "question": "1店舗の検査の所要時間は、3時間程度が目安である。",
+  "correct": false,
+  "explanation": "40〜70分前後が目安です。極端に長い・短いとクレームの原因になります。"
+ },
+ {
+  "category": "手順",
+  "group_key": "trash",
+  "question": "使用した白衣やテープのカスなどのゴミは、店舗に残さない。",
+  "correct": true,
+  "explanation": "ゴミは店舗に残さず、地域の分別に従って適切に廃棄します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "trash",
+  "question": "使用した白衣などのゴミは、店舗のゴミ箱に捨ててよい。",
+  "correct": false,
+  "explanation": "ゴミは店舗に残さず、地域の分別に従って適切に廃棄します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "data-send",
+  "question": "当日の点検データは、翌日の午前中までに送信する。",
+  "correct": true,
+  "explanation": "当日の点検データは翌日AMまでに送信します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "data-send",
+  "question": "点検データは、1週間以内に送信すればよい。",
+  "correct": false,
+  "explanation": "当日の点検データは翌日AMまでに送信します。"
+ },
+ {
+  "category": "手順",
+  "group_key": "undress",
+  "question": "次の店舗へ移動する前に、白衣・帽子・マスクの順に脱ぐのが望ましい。",
+  "correct": true,
+  "explanation": "次の店舗がある場合は白衣→帽子→マスクの順に脱ぐのが望ましいです。"
+ },
+ {
+  "category": "手順",
+  "group_key": "undress",
+  "question": "白衣や帽子は、次の店舗までそのまま着ていくのが望ましい。",
+  "correct": false,
+  "explanation": "次の店舗がある場合は白衣→帽子→マスクの順に脱ぐのが望ましいです。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-area",
+  "question": "平らな面の拭き取りは、通常100cm²（10cm×10cm）の範囲を拭き取る。",
+  "correct": true,
+  "explanation": "通常は一定面積100cm²（10cm×10cm）を拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-area",
+  "question": "平らな面の拭き取りは、1cm四方の範囲で十分である。",
+  "correct": false,
+  "explanation": "通常は一定面積100cm²（10cm×10cm）を拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-dir",
+  "question": "平らな面は、タテ・ヨコ・ななめ方向にそれぞれ10回ずつ拭き取る。",
+  "correct": true,
+  "explanation": "タテ10回→ヨコ10回→ななめ10回の順に拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-dir",
+  "question": "平らな面は、タテ方向に1回だけ拭き取ればよい。",
+  "correct": false,
+  "explanation": "タテ10回→ヨコ10回→ななめ10回の順に拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-shake",
+  "question": "拭き取り後のボトルは、振り子状に数回振る（上下方向には振らない）。",
+  "correct": true,
+  "explanation": "キャップを固く閉め、振り子状に数回振ります。上下方向には振りません。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-shake",
+  "question": "拭き取り後のボトルは、上下方向に強く振る。",
+  "correct": false,
+  "explanation": "キャップを固く閉め、振り子状に数回振ります。上下方向には振りません。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-store",
+  "question": "拭き取り後の検体は冷蔵保存し、原則その日のうちに検査会社へ送る。",
+  "correct": true,
+  "explanation": "検体は冷蔵保存し、原則当日中に検査会社宛に送付します。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-store",
+  "question": "拭き取り後の検体は、常温で数日保管してから送ればよい。",
+  "correct": false,
+  "explanation": "検体は冷蔵保存し、原則当日中に検査会社宛に送付します。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-touch",
+  "question": "菌検査を行う場所は、検査前に手で触れないようにする。",
+  "correct": true,
+  "explanation": "結果が変わってしまうため、検査前に手で触れないようにします。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-touch",
+  "question": "菌検査を行う場所は、検査前に手で汚れを払ってから拭き取る。",
+  "correct": false,
+  "explanation": "結果が変わってしまうため、検査前に手で触れないようにします。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-cooler",
+  "question": "拭き取った検体は、採取後すぐにクーラーボックスへ入れる。",
+  "correct": true,
+  "explanation": "採取後は速やかにクーラーボックスへ（難しい場合はお客様の許可を得て冷蔵庫へ）。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-cooler",
+  "question": "拭き取った検体は、点検がすべて終わるまで作業台に置いておく。",
+  "correct": false,
+  "explanation": "採取後は速やかにクーラーボックスへ（難しい場合はお客様の許可を得て冷蔵庫へ）。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "seal",
+  "question": "検体シールは、容器の目盛りの上に貼らない。",
+  "correct": true,
+  "explanation": "シールは目盛りの上に貼らないようにします。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "seal",
+  "question": "検体シールは、容器の目盛りの上に貼る。",
+  "correct": false,
+  "explanation": "シールは目盛りの上に貼らないようにします。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "unused",
+  "question": "使わなかったふきふきチェックは、検査会社へ送付しない。",
+  "correct": true,
+  "explanation": "送付すると検査費用が発生するため、絶対に送付しません。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "unused",
+  "question": "使わなかったふきふきチェックも、検体と一緒に検査会社へ送る。",
+  "correct": false,
+  "explanation": "送付すると検査費用が発生するため、絶対に送付しません。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "knife",
+  "question": "包丁の拭き取りでは、刃と取っ手の境目部分も必ず拭き取る。",
+  "correct": true,
+  "explanation": "刃の片面全体と、必ず刃と取っ手の境目部分を拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "knife",
+  "question": "包丁の拭き取りでは、刃の先端だけを拭き取ればよい。",
+  "correct": false,
+  "explanation": "刃の片面全体と、必ず刃と取っ手の境目部分を拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "hand-wound",
+  "question": "手指の拭き取りで手にキズがある場合は、衛生手袋を着けた状態で手洗いしてもらい拭き取る。",
+  "correct": true,
+  "explanation": "手にキズがある場合は衛生手袋を着用した状態で拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "hand-wound",
+  "question": "手にキズがある人の手指は、素手のまま拭き取る。",
+  "correct": false,
+  "explanation": "手にキズがある場合は衛生手袋を着用した状態で拭き取ります。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "alt-sample",
+  "question": "指定の検体が採取できない場合は、窓口の衛生担当に確認して代わりの検体を採取する。",
+  "correct": true,
+  "explanation": "基本的には代替の検体を採取します。まず窓口の衛生担当へ電話で確認します。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "alt-sample",
+  "question": "指定の検体が採取できない場合は、何も採取せずに帰る。",
+  "correct": false,
+  "explanation": "基本的には代替の検体を採取します。まず窓口の衛生担当へ電話で確認します。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-same",
+  "question": "拭き取り方法が人によって違うと、検査結果が大きく変わってしまう。",
+  "correct": true,
+  "explanation": "拭き取り方が違うと結果が大きく変わるため、決められた方法で行います。"
+ },
+ {
+  "category": "拭き取り検査",
+  "group_key": "wipe-same",
+  "question": "拭き取り方法は人それぞれでも、検査結果は変わらない。",
+  "correct": false,
+  "explanation": "拭き取り方が違うと結果が大きく変わるため、決められた方法で行います。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "friday",
+  "question": "金曜日に実施した検体は、翌日（土曜日）の午前中に届くように送る。",
+  "correct": true,
+  "explanation": "金曜日実施分は、翌日（土曜日）午前中必着で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "friday",
+  "question": "金曜日に実施した検体は、週明けの月曜日に届くように送ればよい。",
+  "correct": false,
+  "explanation": "金曜日実施分は、翌日（土曜日）午前中必着で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "food-next",
+  "question": "食品検査の検体は、曜日に関係なく翌日到着の冷蔵便で送る。",
+  "correct": true,
+  "explanation": "食品検体は必ず翌日到着の冷蔵便で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "food-next",
+  "question": "食品検査の検体は、常温便で送ってよい。",
+  "correct": false,
+  "explanation": "食品検体は必ず翌日到着の冷蔵便で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "konbini",
+  "question": "コンビニエンスストアではクール便を扱っていないため、ヤマトの営業所に持ち込むか集荷を依頼する。",
+  "correct": true,
+  "explanation": "コンビニではクール便を扱っていません。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "konbini",
+  "question": "検体のクール便は、コンビニエンスストアから送ることができる。",
+  "correct": false,
+  "explanation": "コンビニではクール便を扱っていません。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "cold-mark",
+  "question": "送付伝票の「冷蔵」に○が付いているか確認する。",
+  "correct": true,
+  "explanation": "冷蔵に○が付いていても常温で運ばれる場合があるため、クール料金の加算も確認します。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "cold-mark",
+  "question": "送付伝票の温度区分は確認しなくてよい。",
+  "correct": false,
+  "explanation": "冷蔵に○が付いていても常温で運ばれる場合があるため、クール料金の加算も確認します。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "pack",
+  "question": "検体は、保冷剤・検査依頼書と一緒にアルミ袋に入れて送る。",
+  "correct": true,
+  "explanation": "アルミ袋に検体・保冷剤・検査依頼書を入れ、クール宅急便で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "pack",
+  "question": "検体は、封筒に入れて普通郵便で送る。",
+  "correct": false,
+  "explanation": "アルミ袋に検体・保冷剤・検査依頼書を入れ、クール宅急便で送ります。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "address",
+  "question": "検査依頼書の検査会社名と、伝票の宛先が合っているか必ず確認する。",
+  "correct": true,
+  "explanation": "ユーザーによって送付先が違うため、必ず確認します。"
+ },
+ {
+  "category": "検体送付",
+  "group_key": "address",
+  "question": "検体の送付先は、どのユーザーでも同じなので確認しなくてよい。",
+  "correct": false,
+  "explanation": "ユーザーによって送付先が違うため、必ず確認します。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-amount",
+  "question": "食品検体は通常50g程度必要で、少ない場合でも最低10gは採取する。",
+  "correct": true,
+  "explanation": "通常50g程度、少量の場合でも最低10gは採取します。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-amount",
+  "question": "食品検体は1g程度あれば十分である。",
+  "correct": false,
+  "explanation": "通常50g程度、少量の場合でも最低10gは採取します。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-who",
+  "question": "食品検体は、サンプリングバッグを差し出してお客様に入れていただく。",
+  "correct": true,
+  "explanation": "検査員が入れると、結果が出たときの問題点の検証が難しくなるためです。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-who",
+  "question": "食品検体は、検査員が自分でサンプリングバッグに入れる。",
+  "correct": false,
+  "explanation": "検査員が入れると、結果が出たときの問題点の検証が難しくなるためです。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-name",
+  "question": "検査依頼書には、必ず食品の名称を記入する。",
+  "correct": true,
+  "explanation": "検査依頼書には必ず食品の名称を記入します。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "food-name",
+  "question": "検査依頼書に食品の名称は書かなくてよい。",
+  "correct": false,
+  "explanation": "検査依頼書には必ず食品の名称を記入します。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "staph",
+  "question": "黄色ブドウ球菌は、人の皮膚や鼻などにもいる食中毒菌である。",
+  "correct": true,
+  "explanation": "黄色ブドウ球菌は人の皮膚・喉・鼻などにも常在する食中毒菌です。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "staph",
+  "question": "黄色ブドウ球菌は、人の体には存在しない菌である。",
+  "correct": false,
+  "explanation": "黄色ブドウ球菌は人の皮膚・喉・鼻などにも常在する食中毒菌です。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "coliform",
+  "question": "加熱後の食品から大腸菌群が検出された場合は、調理時の二次汚染が疑われる。",
+  "correct": true,
+  "explanation": "加熱後の食品で検出された場合は、調理時の二次汚染が強く疑われます。"
+ },
+ {
+  "category": "食品検査",
+  "group_key": "coliform",
+  "question": "加熱後の食品から大腸菌群が検出されても、問題はない。",
+  "correct": false,
+  "explanation": "加熱後の食品で検出された場合は、調理時の二次汚染が強く疑われます。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "atp",
+  "question": "ATP検査は、ATPという物質の量を数値化して、器具などの汚れ具合を調べる検査である。",
+  "correct": true,
+  "explanation": "ATP検査は食品や生物に含まれるATPの量から汚れ具合を調べます。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "atp",
+  "question": "ATP検査は、フライヤーの油の劣化を調べる検査である。",
+  "correct": false,
+  "explanation": "ATP検査は食品や生物に含まれるATPの量から汚れ具合を調べます。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-what",
+  "question": "AV-CHECKは、フライヤーの油の劣化度（酸価）を調べる試験紙である。",
+  "correct": true,
+  "explanation": "AV-CHECKはフライヤー油の劣化度（酸価）を調べる試験紙です。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-what",
+  "question": "AV-CHECKは、手指の汚れを調べる試験紙である。",
+  "correct": false,
+  "explanation": "AV-CHECKはフライヤー油の劣化度（酸価）を調べる試験紙です。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-3",
+  "question": "AV値が3を超えたら評価は×とし、早急な油の交換を指導する。",
+  "correct": true,
+  "explanation": "AV値が3を超えたら×。2〜3なら「そろそろ換え時」と伝えます。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-3",
+  "question": "AV値が5までは、油を交換しなくてよい。",
+  "correct": false,
+  "explanation": "AV値が3を超えたら×。2〜3なら「そろそろ換え時」と伝えます。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-time",
+  "question": "AV-CHECKは、油をたらしてから30秒後に色調表と比べて判定する。",
+  "correct": true,
+  "explanation": "油をたらして30秒後に色調表と比較し、写真も撮ります。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-time",
+  "question": "AV-CHECKは、油をたらしてから10分後に判定する。",
+  "correct": false,
+  "explanation": "油をたらして30秒後に色調表と比較し、写真も撮ります。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-store",
+  "question": "AV-CHECKは光と湿気に弱いため、使わないときはチャック付きの袋で保管する。",
+  "correct": true,
+  "explanation": "光と湿気に弱いため、チャック付き袋でしっかり保管します。"
+ },
+ {
+  "category": "ATP・AV",
+  "group_key": "av-store",
+  "question": "AV-CHECKは、袋から出したまま保管してよい。",
+  "correct": false,
+  "explanation": "光と湿気に弱いため、チャック付き袋でしっかり保管します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "house-rule",
+  "question": "ユーザーのハウスルールがある場合は、ハウスルールを優先して評価する。",
+  "correct": true,
+  "explanation": "ハウスルールがある場合はハウスルールを優先して評価します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "house-rule",
+  "question": "ユーザーのハウスルールがあっても、ニイタカの基準だけで評価する。",
+  "correct": false,
+  "explanation": "ハウスルールがある場合はハウスルールを優先して評価します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "floor",
+  "question": "食品や容器を床に直置きしているのは、良くない状態である。",
+  "correct": true,
+  "explanation": "食品（容器・包材）の床への直置き・低位置保管は指摘事項です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "floor",
+  "question": "食品の容器は、床に直置きしても問題ない。",
+  "correct": false,
+  "explanation": "食品（容器・包材）の床への直置き・低位置保管は指摘事項です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "cold-food",
+  "question": "要冷蔵品・要冷凍品が常温で放置されていないか確認する。",
+  "correct": true,
+  "explanation": "要冷蔵品・要冷凍品の常温放置はチェック項目です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "cold-food",
+  "question": "要冷蔵品は、短時間であれば常温に何時間置いても問題ない。",
+  "correct": false,
+  "explanation": "要冷蔵品・要冷凍品の常温放置はチェック項目です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "expired",
+  "question": "期限切れの食品が見つかった場合は、指摘事項になる。",
+  "correct": true,
+  "explanation": "期限切れ食品は指摘事項です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "expired",
+  "question": "期限切れの食品があっても、見た目が問題なければ指摘しない。",
+  "correct": false,
+  "explanation": "期限切れ食品は指摘事項です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "cardboard",
+  "question": "段ボールや新聞紙、発泡スチロールの保管・再利用は好ましくない。",
+  "correct": true,
+  "explanation": "段ボール等の保管や再利用はチェック項目（×）です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "cardboard",
+  "question": "段ボールは、食材の保管に再利用するのがよい。",
+  "correct": false,
+  "explanation": "段ボール等の保管や再利用はチェック項目（×）です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "chemical-shelf",
+  "question": "薬剤は、食材とは別の棚に保管する。",
+  "correct": true,
+  "explanation": "薬剤は食材と別の棚に、整理整頓して保管します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "chemical-shelf",
+  "question": "薬剤は、食材と同じ棚に保管してよい。",
+  "correct": false,
+  "explanation": "薬剤は食材と別の棚に、整理整頓して保管します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "chemical-high",
+  "question": "開封した薬剤を肩より上に保管していないか確認する。",
+  "correct": true,
+  "explanation": "開封した薬剤を肩より上に保管するのは危険なため確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "chemical-high",
+  "question": "開封した薬剤は、肩より高い棚に保管するのがよい。",
+  "correct": false,
+  "explanation": "開封した薬剤を肩より上に保管するのは危険なため確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "label",
+  "question": "洗剤の小分け容器には、名称を記入する。",
+  "correct": true,
+  "explanation": "誤使用を防ぐため、小分け容器には名称を記入します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "label",
+  "question": "洗剤の小分け容器には、名称を書かなくてよい。",
+  "correct": false,
+  "explanation": "誤使用を防ぐため、小分け容器には名称を記入します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "towel",
+  "question": "手洗い場での共同タオルの使用は、好ましくない。",
+  "correct": true,
+  "explanation": "共同タオルは使用せず、ペーパータオル等を使います。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "towel",
+  "question": "手洗い後は、みんなで共同のタオルを使うのがよい。",
+  "correct": false,
+  "explanation": "共同タオルは使用せず、ペーパータオル等を使います。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "board",
+  "question": "まな板や包丁には用途区分があり、区分の内容が周知されていることが望ましい。",
+  "correct": true,
+  "explanation": "まな板・包丁・ダスターは用途区分があり、周知されていることを確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "board",
+  "question": "まな板や包丁は、生肉用と野菜用を区別せずに使ってよい。",
+  "correct": false,
+  "explanation": "まな板・包丁・ダスターは用途区分があり、周知されていることを確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "smoke",
+  "question": "厨房内で喫煙や喫食がないか確認する。",
+  "correct": true,
+  "explanation": "厨房内での喫煙・喫食はモラルの項目で確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "smoke",
+  "question": "厨房内での喫食は問題ない。",
+  "correct": false,
+  "explanation": "厨房内での喫煙・喫食はモラルの項目で確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "staff-accessory",
+  "question": "従業員がアクセサリー（腕時計・指輪・ピアスなど）を着けていないか確認する。",
+  "correct": true,
+  "explanation": "従業員のアクセサリー着用は個人衛生の確認項目です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "staff-accessory",
+  "question": "従業員のアクセサリーは確認しなくてよい。",
+  "correct": false,
+  "explanation": "従業員のアクセサリー着用は個人衛生の確認項目です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "door",
+  "question": "外扉は、必要なとき以外は開放していないことが望ましい。",
+  "correct": true,
+  "explanation": "虫やネズミの侵入を防ぐため、外扉は必要時以外は閉めます。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "door",
+  "question": "換気のため、外扉は常に開けておくのが望ましい。",
+  "correct": false,
+  "explanation": "虫やネズミの侵入を防ぐため、外扉は必要時以外は閉めます。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "mold",
+  "question": "カビ汚れの清掃には、塩素系漂白剤の希釈液が適している。",
+  "correct": true,
+  "explanation": "カビ→塩素系漂白剤希釈液、油汚れ→アルカリ洗浄剤、一般の汚れ→中性洗剤希釈液です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "mold",
+  "question": "カビ汚れの清掃には、アルカリ洗浄剤が最も適している。",
+  "correct": false,
+  "explanation": "カビ→塩素系漂白剤希釈液、油汚れ→アルカリ洗浄剤、一般の汚れ→中性洗剤希釈液です。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "oil",
+  "question": "油汚れの清掃には、アルカリ洗浄剤が適している。",
+  "correct": true,
+  "explanation": "油汚れにはアルカリ洗浄剤を使います。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "oil",
+  "question": "油汚れの清掃には、塩素系漂白剤が最も適している。",
+  "correct": false,
+  "explanation": "油汚れにはアルカリ洗浄剤を使います。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "trap",
+  "question": "グリストラップの中・ふた・ふた裏は、週に1回以上は清掃する。",
+  "correct": true,
+  "explanation": "グリストラップ内・ふた・ふた裏は週1回以上清掃します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "trap",
+  "question": "グリストラップの清掃は、年に1回で十分である。",
+  "correct": false,
+  "explanation": "グリストラップ内・ふた・ふた裏は週1回以上清掃します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "fridge-temp",
+  "question": "冷蔵庫・冷凍庫の温度記録があり、漏れなく記入されているか確認する。",
+  "correct": true,
+  "explanation": "冷蔵庫・冷凍庫の温度記録の有無と記入漏れを確認します。"
+ },
+ {
+  "category": "店舗チェック",
+  "group_key": "fridge-temp",
+  "question": "冷蔵庫の温度記録は確認しなくてよい。",
+  "correct": false,
+  "explanation": "冷蔵庫・冷凍庫の温度記録の有無と記入漏れを確認します。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "absent",
+  "question": "店舗が不在のときは、声掛けや電話をして、反応がなければ10分ほど待って次の訪問先へ移動する。",
+  "correct": true,
+  "explanation": "声掛け・電話をして10分ほど待ち、誰も来なければ次へ移動します（事前連絡している場合はメモを残す）。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "absent",
+  "question": "店舗が不在のときは、誰か来るまで何時間でも待つ。",
+  "correct": false,
+  "explanation": "声掛け・電話をして10分ほど待ち、誰も来なければ次へ移動します（事前連絡している場合はメモを残す）。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "refuse",
+  "question": "検査を拒否された場合は、本部の指示で実施している旨を伝え、基本は実施する。",
+  "correct": true,
+  "explanation": "本部の指示である旨を伝え、基本は実施します。本当に忙しい場合などは再訪問します。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "refuse",
+  "question": "検査を拒否されたら、理由を聞かずにすぐ帰る。",
+  "correct": false,
+  "explanation": "本部の指示である旨を伝え、基本は実施します。本当に忙しい場合などは再訪問します。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "renovation",
+  "question": "全面改装中の店舗では、検査を実施しない。",
+  "correct": true,
+  "explanation": "全面改装中は実施しません（一部改装で検査できれば実施）。"
+ },
+ {
+  "category": "空振り時",
+  "group_key": "renovation",
+  "question": "全面改装中の店舗でも、必ず検査を実施する。",
+  "correct": false,
+  "explanation": "全面改装中は実施しません（一部改装で検査できれば実施）。"
+ },
+ {
+  "category": "感染症",
+  "group_key": "alcohol",
+  "question": "感染症の流行時は、入店直前にアルコールで手指を消毒する。",
+  "correct": true,
+  "explanation": "入店直前に手指とiPad等をアルコールで消毒します。"
+ },
+ {
+  "category": "感染症",
+  "group_key": "alcohol",
+  "question": "感染症の流行時でも、入店前の手指消毒は不要である。",
+  "correct": false,
+  "explanation": "入店直前に手指とiPad等をアルコールで消毒します。"
+ },
+ {
+  "category": "感染症",
+  "group_key": "infected",
+  "question": "自分が感染症にかかった場合は、医師や保健所の指示に従い、現場には訪問しない。",
+  "correct": true,
+  "explanation": "医師の復帰の診断または陰性の確認まで訪問しません。"
+ },
+ {
+  "category": "感染症",
+  "group_key": "infected",
+  "question": "自分が感染症にかかっても、熱が下がればすぐ現場に訪問してよい。",
+  "correct": false,
+  "explanation": "医師の復帰の診断または陰性の確認まで訪問しません。"
+ }
+]

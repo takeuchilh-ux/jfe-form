@@ -152,3 +152,16 @@ tr.dim td { opacity: .5; }
 .q-choice.wrong { border-color: var(--danger); background: var(--danger-weak); }
 .progress { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
 .progress > div { height: 100%; background: var(--primary); }
+
+/* ○×テスト */
+.tf-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.tf-btn {
+  font-size: 44px; line-height: 1; padding: 18px 0; border-radius: 12px; border: 2px solid var(--border);
+  background: #fff; color: var(--text); cursor: pointer; font-family: inherit;
+}
+.tf-btn:first-child { color: var(--primary); }
+.tf-btn:last-child { color: var(--danger); }
+.tf-btn:disabled { cursor: default; }
+.tf-btn.is-correct { border-color: var(--primary); background: var(--primary-weak); }
+.tf-btn.is-wrong { border-color: var(--danger); background: var(--danger-weak); }
+.tf-btn.is-dim { opacity: .35; }

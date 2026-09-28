@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg, parseCsv } from "@/lib/client";
 import type { Settings } from "@/lib/data";
@@ -9,15 +9,16 @@ export type Question = {
   id: string;
   sort_order: number;
   category: string;
+  group_key: string;
   question: string;
-  choices: string[];
   correct_index: number;
   explanation: string;
   active: boolean;
 };
 export type Attempt = { id: string; score: number; total: number; passed: boolean; submitted_at: string; inspector: { name: string } | null };
 
-type Form = { category: string; question: string; choices: string[]; correct_index: number; explanation: string; sort_order: number };
+type Form = { category: string; group_key: string; question: string; correct_index: number; explanation: string; sort_order: number };
+const MARK = ["○", "×"];
 
 export default function TestsClient({ questions, attempts, settings }: { questions: Question[]; attempts: Attempt[]; settings: Settings }) {
   const router = useRouter();
@@ -25,46 +26,48 @@ export default function TestsClient({ questions, attempts, settings }: { questio
   const [editing, setEditing] = useState<Question | "new" | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [csv, setCsv] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [q, setQ] = useState("");
+  const [msg, setMsg] = useState<{ type: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const activeCount = questions.filter((q) => q.active).length;
 
-  function open(q: Question | "new") {
-    setEditing(q);
-    setError("");
+  const active = questions.filter((x) => x.active);
+  const themeCount = new Set(active.map((x) => x.group_key || x.id)).size;
+  const filtered = useMemo(() => {
+    const k = q.trim();
+    return k ? questions.filter((x) => [x.question, x.category, x.group_key].some((v) => v.includes(k))) : questions;
+  }, [q, questions]);
+
+  function open(x: Question | "new") {
+    setEditing(x);
+    setMsg(null);
     setForm(
-      q === "new"
-        ? { category: "", question: "", choices: ["", "", "", ""], correct_index: 0, explanation: "", sort_order: (questions.at(-1)?.sort_order ?? 0) + 1 }
-        : { category: q.category, question: q.question, choices: [...q.choices], correct_index: q.correct_index, explanation: q.explanation, sort_order: q.sort_order },
+      x === "new"
+        ? { category: "", group_key: "", question: "", correct_index: 0, explanation: "", sort_order: (questions.at(-1)?.sort_order ?? 0) + 1 }
+        : { category: x.category, group_key: x.group_key, question: x.question, correct_index: x.correct_index, explanation: x.explanation, sort_order: x.sort_order },
     );
   }
 
-  async function act(fn: () => Promise<unknown>) {
+  async function act(fn: () => Promise<unknown>, success?: (r: unknown) => string) {
     setBusy(true);
-    setError("");
+    setMsg(null);
     try {
-      await fn();
+      const r = await fn();
       setEditing(null);
       setCsv(null);
+      if (success) setMsg({ type: "success", text: success(r) });
       router.refresh();
     } catch (e) {
-      setError(errMsg(e));
+      setMsg({ type: "error", text: errMsg(e) });
     } finally {
       setBusy(false);
     }
   }
 
-  // CSV: カテゴリ,問題文,選択肢1..4,正解番号(1始まり),解説
+  // CSV: カテゴリ,テーマ,問題文,正解(○/×),解説
   const csvRows = csv
     ? parseCsv(csv)
-        .filter((r) => r[1] && r[1] !== "問題文")
-        .map((r) => ({
-          category: r[0],
-          question: r[1],
-          choices: r.slice(2, 6).filter(Boolean),
-          correct_index: Number(r[6]) - 1,
-          explanation: r[7] ?? "",
-        }))
+        .filter((r) => r[2] && r[2] !== "問題文")
+        .map((r) => ({ category: r[0], group_key: r[1], question: r[2], correct: r[3], explanation: r[4] ?? "" }))
     : [];
 
   return (
@@ -79,31 +82,55 @@ export default function TestsClient({ questions, attempts, settings }: { questio
           </button>
         </div>
         <span className="muted">
-          出題 {settings.test_question_count} 問（有効な問題 {activeCount} 問からランダム）／ 合格 {settings.test_pass_score} 点以上
+          ○×方式／出題 {settings.test_question_count} 問（{themeCount} テーマからランダム）／合格 {settings.test_pass_score} 点以上／1 日 {settings.test_daily_limit} 回まで
         </span>
       </div>
-      {error && !editing && <div className="alert error">{error}</div>}
+      {msg && !editing && <div className={`alert ${msg.type}`}>{msg.text}</div>}
 
       {tab === "questions" && (
         <>
-          {activeCount < settings.test_question_count && (
-            <div className="alert warn">
-              有効な問題が出題数（{settings.test_question_count} 問）に足りません。現在は {activeCount} 問すべてが出題されます。
+          {questions.length === 0 && (
+            <div className="card">
+              <p>
+                問題が登録されていません。「衛生巡回サービス手順書」から作成した○×問題（95 テーマ・190 問）を登録できます。
+              </p>
+              <button
+                className="btn primary"
+                disabled={busy}
+                onClick={() => act(() => api<{ count: number }>("/api/admin/questions/defaults", { method: "POST" }), (r) => `${(r as { count: number }).count} 問を登録しました`)}
+              >
+                手順書の問題を登録する
+              </button>
             </div>
           )}
-          <div className="row" style={{ marginBottom: 12, justifyContent: "flex-end" }}>
-            <button className="btn" onClick={() => setCsv(csv === null ? "" : null)}>
-              CSV 一括登録
-            </button>
-            <button className="btn primary" onClick={() => open("new")}>
-              ＋ 問題を追加
-            </button>
+          {questions.length > 0 && themeCount < settings.test_question_count && (
+            <div className="alert warn">
+              有効なテーマ数（{themeCount}）が出題数（{settings.test_question_count} 問）に足りません。現在は {themeCount} 問が出題されます。
+            </div>
+          )}
+          <div className="card small muted">
+            同じ「テーマ」の問題（例：正しい文と誤った文）は、1 回のテストで 1 問だけランダムに出題されます。テーマが空欄の問題は単独で扱います。
+          </div>
+          <div className="row between" style={{ marginBottom: 12 }}>
+            <input type="text" placeholder="問題文・カテゴリ・テーマで検索" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 320 }} />
+            <div className="row">
+              <button className="btn" onClick={() => setCsv(csv === null ? "" : null)}>
+                CSV 一括登録
+              </button>
+              <button className="btn primary" onClick={() => open("new")}>
+                ＋ 問題を追加
+              </button>
+            </div>
           </div>
           {csv !== null && (
             <div className="card">
-              <p className="muted">「カテゴリ,問題文,選択肢1,選択肢2,選択肢3,選択肢4,正解番号(1〜4),解説」の順で貼り付けてください。</p>
+              <p className="muted">「カテゴリ,テーマ,問題文,正解(○ または ×),解説」の順で貼り付けてください。</p>
               <textarea rows={6} value={csv} onChange={(e) => setCsv(e.target.value)} />
-              <button className="btn primary mt" disabled={busy || !csvRows.length} onClick={() => act(() => api("/api/admin/questions/import", { body: { rows: csvRows } }))}>
+              <button
+                className="btn primary mt"
+                disabled={busy || !csvRows.length}
+                onClick={() => act(() => api<{ count: number }>("/api/admin/questions/import", { body: { rows: csvRows } }), (r) => `${(r as { count: number }).count} 問を登録しました`)}
+              >
                 {csvRows.length} 問を登録
               </button>
             </div>
@@ -114,27 +141,22 @@ export default function TestsClient({ questions, attempts, settings }: { questio
                 <tr>
                   <th>#</th>
                   <th>カテゴリ</th>
+                  <th>テーマ</th>
                   <th>問題</th>
                   <th>正解</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {questions.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="muted">
-                      問題が登録されていません
-                    </td>
-                  </tr>
-                )}
-                {questions.map((q) => (
-                  <tr key={q.id} className={q.active ? "" : "dim"}>
-                    <td>{q.sort_order}</td>
-                    <td className="nowrap">{q.category}</td>
-                    <td>{q.question}</td>
-                    <td className="small">{q.choices[q.correct_index]}</td>
+                {filtered.map((x) => (
+                  <tr key={x.id} className={x.active ? "" : "dim"}>
+                    <td>{x.sort_order}</td>
+                    <td className="nowrap">{x.category}</td>
+                    <td className="small muted">{x.group_key}</td>
+                    <td>{x.question}</td>
+                    <td style={{ fontSize: 18, color: x.correct_index === 0 ? "var(--primary)" : "var(--danger)" }}>{MARK[x.correct_index]}</td>
                     <td className="nowrap">
-                      <button className="btn sm" onClick={() => open(q)}>
+                      <button className="btn sm" onClick={() => open(x)}>
                         編集
                       </button>
                     </td>
@@ -158,6 +180,13 @@ export default function TestsClient({ questions, attempts, settings }: { questio
               </tr>
             </thead>
             <tbody>
+              {attempts.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    まだ受験結果がありません
+                  </td>
+                </tr>
+              )}
               {attempts.map((a) => (
                 <tr key={a.id}>
                   <td>{new Date(a.submitted_at).toLocaleString("ja-JP")}</td>
@@ -177,18 +206,15 @@ export default function TestsClient({ questions, attempts, settings }: { questio
         <div className="modal-back" onClick={() => setEditing(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>{editing === "new" ? "問題を追加" : "問題を編集"}</h2>
-            {error && <div className="alert error">{error}</div>}
+            {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const payload = { ...form, choices: form.choices.filter((c) => c.trim()) };
-                act(() =>
-                  editing === "new" ? api("/api/admin/questions", { body: payload }) : api(`/api/admin/questions/${editing.id}`, { method: "PATCH", body: payload }),
-                );
+                act(() => (editing === "new" ? api("/api/admin/questions", { body: form }) : api(`/api/admin/questions/${editing.id}`, { method: "PATCH", body: form })));
               }}
             >
               <div className="row">
-                <label className="field" style={{ width: 90 }}>
+                <label className="field" style={{ width: 80 }}>
                   <span>番号</span>
                   <input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
                 </label>
@@ -196,32 +222,29 @@ export default function TestsClient({ questions, attempts, settings }: { questio
                   <span>カテゴリ</span>
                   <input type="text" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
                 </label>
+                <label className="field grow">
+                  <span>テーマ（同じテーマは 1 問だけ出題）</span>
+                  <input type="text" value={form.group_key} onChange={(e) => setForm({ ...form, group_key: e.target.value })} />
+                </label>
               </div>
               <label className="field">
                 <span>問題文 *</span>
                 <textarea value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} required />
               </label>
               <div className="field">
-                <span className="muted small">選択肢（◉ が正解）</span>
-                {form.choices.map((c, i) => (
-                  <div className="row" key={i} style={{ marginTop: 6, flexWrap: "nowrap" }}>
-                    <input type="radio" name="correct" checked={form.correct_index === i} onChange={() => setForm({ ...form, correct_index: i })} />
-                    <input
-                      type="text"
-                      value={c}
-                      placeholder={`選択肢 ${i + 1}`}
-                      onChange={(e) => setForm({ ...form, choices: form.choices.map((x, j) => (j === i ? e.target.value : x)) })}
-                    />
-                  </div>
-                ))}
-                {form.choices.length < 6 && (
-                  <button type="button" className="btn sm mt" onClick={() => setForm({ ...form, choices: [...form.choices, ""] })}>
-                    ＋ 選択肢
-                  </button>
-                )}
+                <span className="muted small" style={{ fontWeight: 600 }}>
+                  正解
+                </span>
+                <div className="seg" style={{ display: "flex", maxWidth: 240 }}>
+                  {[0, 1].map((i) => (
+                    <button type="button" key={i} style={{ flex: 1, fontSize: 20 }} className={form.correct_index === i ? "on" : ""} onClick={() => setForm({ ...form, correct_index: i })}>
+                      {MARK[i]}
+                    </button>
+                  ))}
+                </div>
               </div>
               <label className="field">
-                <span>解説（採点後に表示）</span>
+                <span>解説（間違えたときに表示）</span>
                 <textarea value={form.explanation} onChange={(e) => setForm({ ...form, explanation: e.target.value })} />
               </label>
               <div className="row">
