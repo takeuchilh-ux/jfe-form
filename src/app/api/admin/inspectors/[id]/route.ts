@@ -38,7 +38,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   const errors: string[] = [];
   // 承認・区分変更・有効/無効の切り替え時は、リッチメニューを区分に合わせて切り替える
   if (approvedNow || row.kind !== cur.kind || row.active !== cur.active) {
-    const e = await syncUserRichMenu(row);
+    const e = await syncUserRichMenu(row, new URL(req.url).origin);
     if (e) errors.push(`メニュー切替：${e}`);
   }
   if (approvedNow && row.line_user_id) {
@@ -60,7 +60,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
 });
 
 /** 検査員を完全に削除（回答・アサイン・交通費・レシート画像・テストの申請と結果も削除） */
-export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
+export const DELETE = handle(async (req: Request, { params }: Ctx) => {
   await requireAdmin();
   const { id } = await params;
   const row = must(await db().from("kensa_inspectors").select("line_user_id,kind").eq("id", id).single());
@@ -71,5 +71,5 @@ export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
   must(await db().from("kensa_inspectors").delete().eq("id", id).select("id"));
   if (paths.length) await db().storage.from(RECEIPT_BUCKET).remove(paths);
   // LINE のメニューを未登録者用に戻す（再登録できるように）
-  await syncUserRichMenu({ line_user_id: row.line_user_id, kind: row.kind, active: false, approved_at: null });
+  await syncUserRichMenu({ line_user_id: row.line_user_id, kind: row.kind, active: false, approved_at: null }, new URL(req.url).origin);
 });
