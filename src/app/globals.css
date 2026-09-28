@@ -165,3 +165,10 @@ tr.dim td { opacity: .5; }
 .tf-btn.is-correct { border-color: var(--primary); background: var(--primary-weak); }
 .tf-btn.is-wrong { border-color: var(--danger); background: var(--danger-weak); }
 .tf-btn.is-dim { opacity: .35; }
+.q-text { font-size: 17px; margin-top: 10px; line-height: 1.7; }
+.tf-btn.is-selected { border-color: var(--info); background: var(--info-weak); }
+.review-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+.review-cell { display: flex; flex-direction: column; align-items: center; padding: 6px 0; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; }
+.review-cell .no { font-size: 11px; color: var(--muted); }
+.review-cell .mk { font-size: 18px; font-weight: 700; }
+.review-cell.empty { background: var(--warn-weak); border-color: var(--warn); }

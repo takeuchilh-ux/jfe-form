@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg, parseCsv } from "@/lib/client";
 import type { Settings } from "@/lib/data";
+import { fmtDate, todayJst } from "@/lib/format";
 
 export type Question = {
   id: string;
@@ -15,14 +16,38 @@ export type Question = {
   explanation: string;
   active: boolean;
 };
+export type ExamRequest = {
+  id: string;
+  exam_date: string;
+  status: "pending" | "approved" | "rejected" | "completed" | "cancelled";
+  admin_comment: string;
+  created_at: string;
+  inspector: { name: string } | null;
+  attempt: { score: number | null; total: number; passed: boolean | null; submitted_at: string | null }[] | { score: number | null; total: number; passed: boolean | null; submitted_at: string | null } | null;
+};
 export type Attempt = { id: string; score: number; total: number; passed: boolean; submitted_at: string; inspector: { name: string } | null };
 
 type Form = { category: string; group_key: string; question: string; correct_index: number; explanation: string; sort_order: number };
 const MARK = ["○", "×"];
 
-export default function TestsClient({ questions, attempts, settings }: { questions: Question[]; attempts: Attempt[]; settings: Settings }) {
+type Tab = "questions" | "requests" | "results";
+
+export default function TestsClient({
+  initialTab,
+  questions,
+  attempts,
+  requests,
+  settings,
+}: {
+  initialTab: Tab;
+  questions: Question[];
+  attempts: Attempt[];
+  requests: ExamRequest[];
+  settings: Settings;
+}) {
   const router = useRouter();
-  const [tab, setTab] = useState<"questions" | "results">("questions");
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const pendingCount = requests.filter((r) => r.status === "pending").length;
   const [editing, setEditing] = useState<Question | "new" | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [csv, setCsv] = useState<string | null>(null);
@@ -77,12 +102,15 @@ export default function TestsClient({ questions, attempts, settings }: { questio
           <button className={tab === "questions" ? "on" : ""} onClick={() => setTab("questions")}>
             問題（{questions.length}）
           </button>
+          <button className={tab === "requests" ? "on" : ""} onClick={() => setTab("requests")}>
+            本番申請{pendingCount > 0 ? `（承認待ち ${pendingCount}）` : ""}
+          </button>
           <button className={tab === "results" ? "on" : ""} onClick={() => setTab("results")}>
-            受験結果（{attempts.length}）
+            本番結果（{attempts.length}）
           </button>
         </div>
         <span className="muted">
-          ○×方式／出題 {settings.test_question_count} 問（{themeCount} テーマからランダム）／合格 {settings.test_pass_score} 点以上／1 日 {settings.test_daily_limit} 回まで
+          ○×方式／出題 {settings.test_question_count} 問（{themeCount} テーマからランダム）／合格 {settings.test_pass_score} 点以上／練習は何回でも・本番は申請承認制
         </span>
       </div>
       {msg && !editing && <div className={`alert ${msg.type}`}>{msg.text}</div>}
@@ -167,6 +195,8 @@ export default function TestsClient({ questions, attempts, settings }: { questio
           </div>
         </>
       )}
+
+      {tab === "requests" && <RequestsTable requests={requests} busy={busy} act={act} />}
 
       {tab === "results" && (
         <div className="table-wrap">
@@ -281,5 +311,122 @@ export default function TestsClient({ questions, attempts, settings }: { questio
         </div>
       )}
     </>
+  );
+}
+
+const REQ_STATUS: Record<ExamRequest["status"], [string, string]> = {
+  pending: ["承認待ち", "warn"],
+  approved: ["承認済み", "ok"],
+  rejected: ["却下", "ng"],
+  completed: ["受験済み", "info"],
+  cancelled: ["取り下げ", ""],
+};
+
+function RequestsTable({
+  requests,
+  busy,
+  act,
+}: {
+  requests: ExamRequest[];
+  busy: boolean;
+  act: (fn: () => Promise<unknown>, success?: (r: unknown) => string) => void;
+}) {
+  const [dates, setDates] = useState<Record<string, string>>({});
+  const today = todayJst();
+
+  function decide(r: ExamRequest, action: "approve" | "reject") {
+    const exam_date = dates[r.id] ?? r.exam_date;
+    let admin_comment = "";
+    if (action === "reject") {
+      const c = prompt("却下の理由（検査員に LINE で通知されます。空欄でも可）", "");
+      if (c === null) return;
+      admin_comment = c;
+    } else if (!confirm(`${r.inspector?.name} さんの本番テストを ${fmtDate(exam_date)} で承認します（LINE で通知されます）。`)) {
+      return;
+    }
+    act(
+      () => api<{ lineError: string | null }>(`/api/admin/test-requests/${r.id}`, { method: "PATCH", body: { action, exam_date, admin_comment } }),
+      (res) => {
+        const e = (res as { lineError: string | null }).lineError;
+        return e ? `保存しましたが LINE 通知に失敗しました：${e}` : action === "approve" ? "承認し、LINE で通知しました" : "却下し、LINE で通知しました";
+      },
+    );
+  }
+
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>申請日</th>
+            <th>検査員</th>
+            <th>受験日</th>
+            <th>状態</th>
+            <th>結果</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {requests.length === 0 && (
+            <tr>
+              <td colSpan={6} className="muted">
+                申請はまだありません
+              </td>
+            </tr>
+          )}
+          {requests.map((r) => {
+            const attempt = Array.isArray(r.attempt) ? r.attempt[0] : r.attempt;
+            const expired = r.status === "approved" && r.exam_date < today;
+            const [label, cls] = expired ? ["期限切れ（未受験）", ""] : REQ_STATUS[r.status];
+            const editable = r.status === "pending" || (r.status === "approved" && !expired && !attempt);
+            return (
+              <tr key={r.id} className={r.status === "cancelled" || expired ? "dim" : ""}>
+                <td className="nowrap small">{new Date(r.created_at).toLocaleDateString("ja-JP")}</td>
+                <td className="nowrap">{r.inspector?.name}</td>
+                <td className="nowrap">
+                  {editable ? (
+                    <input
+                      type="date"
+                      className="inline"
+                      min={today}
+                      value={dates[r.id] ?? r.exam_date}
+                      onChange={(e) => setDates({ ...dates, [r.id]: e.target.value })}
+                    />
+                  ) : (
+                    fmtDate(r.exam_date)
+                  )}
+                </td>
+                <td>
+                  <span className={`badge ${cls}`}>{label}</span>
+                  {r.status === "approved" && attempt && !attempt.submitted_at && <span className="badge info"> 受験中</span>}
+                  {r.admin_comment && <div className="small muted">{r.admin_comment}</div>}
+                </td>
+                <td className="nowrap">
+                  {attempt?.submitted_at ? (
+                    <>
+                      {attempt.score} / {attempt.total} {attempt.passed ? <span className="badge ok">合格</span> : <span className="badge ng">不合格</span>}
+                    </>
+                  ) : (
+                    <span className="muted">—</span>
+                  )}
+                </td>
+                <td className="nowrap">
+                  {editable && (
+                    <>
+                      <button className="btn sm primary" disabled={busy} onClick={() => decide(r, "approve")}>
+                        {r.status === "approved" ? "日付を変更" : "承認"}
+                      </button>{" "}
+                      <button className="btn sm danger" disabled={busy} onClick={() => decide(r, "reject")}>
+                        却下
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

@@ -15,6 +15,5 @@ export const GET = handle(async () => {
     routeSearch: !!process.env.GOOGLE_MAPS_API_KEY,
     testQuestionCount: s.test_question_count,
     testPassScore: s.test_pass_score,
-    testDailyLimit: s.test_daily_limit,
   };
 });

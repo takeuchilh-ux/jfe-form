@@ -2,7 +2,7 @@ import { handle, body, isUuid, bad } from "@/lib/api";
 import { currentInspector } from "@/lib/inspector";
 import { db, maybe, must } from "@/lib/supabase";
 
-/** 1 問ずつ回答を記録し、その場で正誤と解説を返す（同じ問題への回答のやり直しは不可） */
+/** 本番テストの回答を保存（提出までは何度でも変更可。正誤は返さない） */
 export const POST = handle(async (req: Request) => {
   const me = await currentInspector();
   const b = await body<{ attemptId?: unknown; questionId?: unknown; answer?: unknown }>(req);
@@ -16,13 +16,7 @@ export const POST = handle(async (req: Request) => {
   if (attempt.submitted_at) bad("このテストは提出済みです");
   if (!(attempt.question_ids as string[]).includes(b.questionId)) bad("このテストの問題ではありません");
 
-  const answers = (attempt.answers ?? {}) as Record<string, number>;
-  const q = must(await db().from("kensa_questions").select("correct_index,explanation").eq("id", b.questionId).single());
-  // 既に回答済みなら最初の回答を維持して結果だけ返す
-  if (answers[b.questionId] === undefined) {
-    answers[b.questionId] = b.answer;
-    must(await db().from("kensa_test_attempts").update({ answers }).eq("id", attempt.id).is("submitted_at", null).select("id"));
-  }
-  const answer = answers[b.questionId];
-  return { answer, correct: q.correct_index, isCorrect: q.correct_index === answer, explanation: q.explanation };
+  const answers = { ...((attempt.answers ?? {}) as Record<string, number>), [b.questionId]: b.answer };
+  must(await db().from("kensa_test_attempts").update({ answers }).eq("id", attempt.id).is("submitted_at", null).select("id"));
+  return { ok: true };
 });
