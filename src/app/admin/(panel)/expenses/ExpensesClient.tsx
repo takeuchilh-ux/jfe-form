@@ -58,19 +58,46 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
     }
   }
 
-  async function update(status: string) {
-    if (!open) return;
+  const [edit, setEdit] = useState<{ use_date: string; distance_km: string; parking_fee: string; amount: string; note: string } | null>(null);
+
+  async function send(fn: () => Promise<unknown>) {
     setBusy(true);
     setError("");
     try {
-      await api(`/api/admin/expenses/${open.id}`, { method: "PATCH", body: { status, admin_comment: comment } });
+      await fn();
       setOpen(null);
+      setEdit(null);
       router.refresh();
     } catch (e) {
       setError(errMsg(e));
     } finally {
       setBusy(false);
     }
+  }
+
+  const update = (status: string) => open && send(() => api(`/api/admin/expenses/${open.id}`, { method: "PATCH", body: { status, admin_comment: comment } }));
+
+  function startEdit(r: ExpenseRow) {
+    setEdit({
+      use_date: r.use_date,
+      distance_km: String(r.distance_km ?? ""),
+      parking_fee: String(r.parking_fee ?? 0),
+      amount: String(r.amount),
+      note: r.note,
+    });
+  }
+
+  function saveEdit() {
+    if (!open || !edit) return;
+    const body: Record<string, unknown> = { use_date: edit.use_date, note: edit.note };
+    if (open.transport === "car") Object.assign(body, { distance_km: Number(edit.distance_km), parking_fee: Number(edit.parking_fee || 0) });
+    else body.amount = Number(edit.amount);
+    send(() => api(`/api/admin/expenses/${open.id}`, { method: "PATCH", body }));
+  }
+
+  function remove() {
+    if (!open || !confirm("この交通費申請を削除しますか？（レシート画像も削除されます）")) return;
+    send(() => api(`/api/admin/expenses/${open.id}`, { method: "DELETE" }));
   }
 
   return (
@@ -185,10 +212,59 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
                 支払済にする
               </button>
               <span className="grow" />
-              <button className="btn" onClick={() => setOpen(null)}>
+              <button className="btn" onClick={() => (setOpen(null), setEdit(null))}>
                 閉じる
               </button>
             </div>
+            <div className="row mt" style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+              {!edit && (
+                <button className="btn sm" disabled={busy} onClick={() => startEdit(open)}>
+                  内容を修正
+                </button>
+              )}
+              <span className="grow" />
+              <button className="btn sm danger" disabled={busy} onClick={remove}>
+                削除
+              </button>
+            </div>
+            {edit && (
+              <div className="card mt">
+                <h3>内容を修正</h3>
+                <label className="field">
+                  <span>利用日</span>
+                  <input type="date" value={edit.use_date} onChange={(e) => setEdit({ ...edit, use_date: e.target.value })} />
+                </label>
+                {open.transport === "car" ? (
+                  <div className="row">
+                    <label className="field grow">
+                      <span>走行距離（km）</span>
+                      <input type="number" step="0.1" min="0" value={edit.distance_km} onChange={(e) => setEdit({ ...edit, distance_km: e.target.value })} />
+                    </label>
+                    <label className="field grow">
+                      <span>駐車場代（円）</span>
+                      <input type="number" min="0" value={edit.parking_fee} onChange={(e) => setEdit({ ...edit, parking_fee: e.target.value })} />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="field">
+                    <span>金額（円）</span>
+                    <input type="number" min="0" value={edit.amount} onChange={(e) => setEdit({ ...edit, amount: e.target.value })} />
+                  </label>
+                )}
+                <label className="field">
+                  <span>備考</span>
+                  <input type="text" value={edit.note} onChange={(e) => setEdit({ ...edit, note: e.target.value })} />
+                </label>
+                <div className="row">
+                  <button className="btn primary" disabled={busy} onClick={saveEdit}>
+                    修正を保存
+                  </button>
+                  <button className="btn" onClick={() => setEdit(null)}>
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

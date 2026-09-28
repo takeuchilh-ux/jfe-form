@@ -8,7 +8,7 @@ import { todayJst } from "@/lib/format";
 
 /** 本番テストの状況：現在の申請・今日受験できるか・過去の結果 */
 export const GET = handle(async () => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const [request, history, lastRejected] = await Promise.all([
     openRequest(me.id),
     db()
@@ -44,7 +44,7 @@ export const GET = handle(async () => {
 
 /** 本番テスト開始（承認済み・受験日当日のみ）。開始済みなら続きから再開する。正解は返さない */
 export const POST = handle(async () => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const request = await openRequest(me.id);
   if (!request || request.status !== "approved") throw new HttpError(403, "本番テストは申請して管理者の承認を受けると受験できます");
   if (request.exam_date !== todayJst()) throw new HttpError(403, `本番テストは受験日（${request.exam_date}）当日に受験できます`);
@@ -76,7 +76,7 @@ export const POST = handle(async () => {
 
 /** 提出：記録済みの回答で採点し、点数と間違えた問題（正解つき）を返す */
 export const PUT = handle(async (req: Request) => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const b = await body<{ attemptId?: unknown }>(req);
   if (!isUuid(b.attemptId)) bad("attemptId が不正です");
   const attempt = maybe(

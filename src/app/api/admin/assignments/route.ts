@@ -19,7 +19,14 @@ export const PUT = handle(async (req: Request) => {
     must(await db().from("kensa_assignments").delete().eq("inspection_id", b.inspection_id).in("inspector_id", toRemove).select("id"));
   }
   if (toAdd.length) {
-    must(await db().from("kensa_assignments").insert(toAdd.map((inspector_id) => ({ inspection_id: b.inspection_id, inspector_id }))));
+    // 研修生は「同行（研修）」として登録し、必要人数には数えない
+    const people = must(await db().from("kensa_inspectors").select("id,kind").in("id", toAdd)) as { id: string; kind: string }[];
+    const kindOf = new Map(people.map((p) => [p.id, p.kind]));
+    must(
+      await db()
+        .from("kensa_assignments")
+        .insert(toAdd.map((inspector_id) => ({ inspection_id: b.inspection_id, inspector_id, role: kindOf.get(inspector_id) === "trainee" ? "trainee" : "main" }))),
+    );
   }
   return { added: toAdd.length, removed: toRemove.length };
 });

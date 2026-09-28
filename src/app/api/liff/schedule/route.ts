@@ -14,7 +14,7 @@ export const GET = handle(async (req: Request) => {
       .from("kensa_assignments")
       .select(
         "inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,notes,store:kensa_stores(name,area,address)," +
-          "assignments:kensa_assignments(inspector:kensa_inspectors(id,name)))",
+          "assignments:kensa_assignments(role,inspector:kensa_inspectors(id,name)))",
       )
       .eq("inspector_id", me.id)
       .gte("inspection.inspection_date", start)
@@ -27,7 +27,7 @@ export const GET = handle(async (req: Request) => {
       status: string;
       notes: string;
       store: { name: string; area: string; address: string } | null;
-      assignments: { inspector: { id: string; name: string } | null }[];
+      assignments: { role: string; inspector: { id: string; name: string } | null }[];
     };
   }[];
   const items = rows
@@ -38,7 +38,9 @@ export const GET = handle(async (req: Request) => {
       status: i.status,
       notes: i.notes,
       store: i.store,
-      partners: i.assignments.map((a) => a.inspector).filter((p) => p && p.id !== me.id).map((p) => p!.name),
+      partners: i.assignments
+        .filter((a) => a.inspector && a.inspector.id !== me.id)
+        .map((a) => `${a.inspector!.name}${a.role === "trainee" ? "（研修）" : ""}`),
     }))
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   return { month, items };

@@ -17,7 +17,16 @@ type Status = {
 };
 
 export default function TestPage() {
+  const { me } = useMe();
   const [mode, setMode] = useState<"top" | "practice" | "exam">("top");
+  if (me.kind !== "trainee") {
+    return (
+      <main className="liff">
+        <LiffHeader title="50問テスト" />
+        <div className="alert warn">50問テストは研修生向けの機能です。</div>
+      </main>
+    );
+  }
   if (mode === "practice") return <Practice onExit={() => setMode("top")} />;
   if (mode === "exam") return <Exam onExit={() => setMode("top")} />;
   return <Top onPractice={() => setMode("practice")} onExam={() => setMode("exam")} />;

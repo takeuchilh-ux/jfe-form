@@ -156,6 +156,16 @@ export default function StoresClient({ stores }: { stores: Store[] }) {
                     {editing.active ? "無効にする" : "有効に戻す"}
                   </button>
                 )}
+                {editing !== "new" && (
+                  <button
+                    type="button"
+                    className="btn sm danger"
+                    disabled={busy}
+                    onClick={() => confirm(`「${editing.name}」を削除しますか？`) && act(() => api(`/api/admin/stores/${editing.id}`, { method: "DELETE" }))}
+                  >
+                    削除
+                  </button>
+                )}
               </div>
             </form>
           </div>

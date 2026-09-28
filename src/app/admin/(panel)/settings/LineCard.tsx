@@ -11,12 +11,12 @@ export default function LineCard({ status, webhookUrl, liffEndpoint }: { status:
   const ready = status.every((s) => s.ok);
 
   async function setupRichMenu() {
-    if (!confirm("公式 LINE のリッチメニューを設定します（全員のメニューが切り替わります）。よろしいですか？")) return;
+    if (!confirm("公式 LINE のリッチメニュー（未登録者用・検査員用・研修生用）を作り直し、承認済みの人には区分ごとのメニューを割り当てます。よろしいですか？")) return;
     setBusy(true);
     setMsg(null);
     try {
-      await api("/api/admin/line/richmenu", { method: "POST" });
-      setMsg({ type: "success", text: "リッチメニューを設定しました。LINE のトーク画面を開き直すと表示されます。" });
+      const r = await api<{ linked: number }>("/api/admin/line/richmenu", { method: "POST" });
+      setMsg({ type: "success", text: `リッチメニューを設定しました（区分別メニューの割り当て ${r.linked} 名）。LINE のトーク画面を開き直すと表示されます。` });
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
     } finally {

@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit",
-    "richmenu": "node scripts/setup-richmenu.mjs"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@line/liff": "^2.31.0",

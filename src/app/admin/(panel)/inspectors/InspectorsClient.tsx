@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/lib/client";
 import type { Inspector } from "@/lib/data";
 import ProfileFields, { type ProfileForm } from "@/components/ProfileFields";
+import { KIND_LABEL } from "@/lib/format";
 
-type Form = ProfileForm & { area: string; notes: string };
+type Form = ProfileForm & { area: string; notes: string; kind: "inspector" | "trainee" };
 
 function toForm(i: Inspector): Form {
   return {
@@ -23,7 +24,12 @@ function toForm(i: Inspector): Form {
     account_holder: i.account_holder,
     area: i.area,
     notes: i.notes,
+    kind: i.kind,
   };
+}
+
+function KindBadge({ kind }: { kind: Inspector["kind"] }) {
+  return <span className={`badge ${kind === "inspector" ? "info" : ""}`}>{KIND_LABEL[kind]}</span>;
 }
 
 function status(i: Inspector) {
@@ -51,8 +57,29 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
     setMsg(null);
     try {
       const r = await api<{ lineError: string | null }>(`/api/admin/inspectors/${id}`, { method: "PATCH", body });
-      if (r.lineError) setMsg({ type: "warn", text: `保存しましたが LINE 通知に失敗しました：${r.lineError}` });
+      if (r.lineError) setMsg({ type: "warn", text: `保存しましたが LINE 側の処理に失敗しました：${r.lineError}` });
       if (close) setEditing(null);
+      router.refresh();
+    } catch (e) {
+      setMsg({ type: "error", text: errMsg(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(i: Inspector) {
+    if (
+      !confirm(
+        `${i.name} さんを完全に削除します。\n受注可否の回答・アサイン・交通費申請（レシート含む）・テストの申請と結果もすべて削除され、元に戻せません。\n（退職などで残しておきたい場合は「無効にする」を使ってください）\n\n削除しますか？`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      await api(`/api/admin/inspectors/${i.id}`, { method: "DELETE" });
+      setEditing(null);
+      setMsg({ type: "success", text: `${i.name} さんを削除しました` });
       router.refresh();
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
@@ -85,6 +112,7 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
           <thead>
             <tr>
               <th>氏名</th>
+              <th>区分</th>
               <th>状態</th>
               <th>連絡先</th>
               <th>口座</th>
@@ -95,7 +123,7 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
           <tbody>
             {inspectors.length === 0 && (
               <tr>
-                <td colSpan={6} className="muted">
+                <td colSpan={7} className="muted">
                   まだ登録がありません
                 </td>
               </tr>
@@ -105,6 +133,9 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
                 <td>
                   {i.name}
                   {i.line_display_name && <div className="muted small">LINE: {i.line_display_name}</div>}
+                </td>
+                <td>
+                  <KindBadge kind={i.kind} />
                 </td>
                 <td>{status(i)}</td>
                 <td className="small">
@@ -120,9 +151,19 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
                 <td className="small nowrap">{new Date(i.created_at).toLocaleDateString("ja-JP")}</td>
                 <td className="nowrap">
                   {i.active && !i.approved_at && (
-                    <button className="btn sm primary" disabled={busy} onClick={() => confirm(`${i.name} さんを承認しますか？（LINE で通知されます）`) && patch(i.id, { approve: true })}>
-                      承認
-                    </button>
+                    <>
+                      {(["trainee", "inspector"] as const).map((k) => (
+                        <button
+                          key={k}
+                          className="btn sm primary"
+                          style={{ marginRight: 4 }}
+                          disabled={busy}
+                          onClick={() => confirm(`${i.name} さんを「${KIND_LABEL[k]}」として承認しますか？（LINE で通知され、${KIND_LABEL[k]}用のメニューに切り替わります）`) && patch(i.id, { approve: true, kind: k })}
+                        >
+                          {KIND_LABEL[k]}で承認
+                        </button>
+                      ))}
+                    </>
                   )}{" "}
                   <button className="btn sm" onClick={() => open(i)}>
                     詳細・編集
@@ -138,7 +179,7 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
         <div className="modal-back" onClick={() => setEditing(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>
-              {editing.name} {status(editing)}
+              {editing.name} <KindBadge kind={editing.kind} /> {status(editing)}
             </h2>
             {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
             <form
@@ -149,6 +190,18 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
             >
               <ProfileFields value={form} onChange={(v) => setForm({ ...form, ...v })} />
               <h3 className="mt">管理用</h3>
+              <div className="field">
+                <span className="muted small" style={{ fontWeight: 600 }}>
+                  区分（LINE のメニューが切り替わります）
+                </span>
+                <div className="seg" style={{ display: "flex", maxWidth: 280 }}>
+                  {(["inspector", "trainee"] as const).map((k) => (
+                    <button type="button" key={k} style={{ flex: 1 }} className={form.kind === k ? "on" : ""} onClick={() => setForm({ ...form, kind: k })}>
+                      {KIND_LABEL[k]}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <label className="field">
                 <span>担当エリア</span>
                 <input type="text" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
@@ -167,6 +220,9 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
                 <span className="grow" />
                 <button type="button" className="btn sm" disabled={busy} onClick={() => patch(editing.id, { active: !editing.active })}>
                   {editing.active ? "無効にする（退職など）" : "有効に戻す"}
+                </button>
+                <button type="button" className="btn sm danger" disabled={busy} onClick={() => remove(editing)}>
+                  削除
                 </button>
               </div>
             </form>

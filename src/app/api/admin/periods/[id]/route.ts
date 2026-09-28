@@ -16,5 +16,13 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   }
   if (b.status === "closed") Object.assign(patch, { status: "closed", closed_at: new Date().toISOString() });
   if (b.status === "released") Object.assign(patch, { status: "released", closed_at: null });
+  if (b.status === "draft") Object.assign(patch, { status: "draft", released_at: null, closed_at: null });
   return must(await db().from("kensa_periods").update(patch).eq("id", id).select().single());
+});
+
+/** 月のスケジュールを丸ごと削除（検査・受注可否の回答・アサインも削除。交通費申請は残り、店舗の紐づけだけ外れる） */
+export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
+  await requireAdmin();
+  const { id } = await params;
+  must(await db().from("kensa_periods").delete().eq("id", id).select("id"));
 });

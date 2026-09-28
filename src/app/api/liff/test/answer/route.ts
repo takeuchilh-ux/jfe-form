@@ -4,7 +4,7 @@ import { db, maybe, must } from "@/lib/supabase";
 
 /** 本番テストの回答を保存（提出までは何度でも変更可。正誤は返さない） */
 export const POST = handle(async (req: Request) => {
-  const me = await currentInspector();
+  const me = await currentInspector({ only: "trainee" });
   const b = await body<{ attemptId?: unknown; questionId?: unknown; answer?: unknown }>(req);
   if (!isUuid(b.attemptId) || !isUuid(b.questionId)) bad("リクエストが不正です");
   if (b.answer !== 0 && b.answer !== 1) bad("○ か × で回答してください");

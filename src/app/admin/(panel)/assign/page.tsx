@@ -29,7 +29,7 @@ export default async function AssignPage({ searchParams }: Props) {
           inspections={inspections}
           inspectors={inspectors
             .filter((i) => i.approved_at)
-            .map((i) => ({ id: i.id, name: i.name, active: i.active, linked: !!i.line_user_id }))}
+            .map((i) => ({ id: i.id, name: i.name, active: i.active, linked: !!i.line_user_id, kind: i.kind }))}
         />
       )}
     </>

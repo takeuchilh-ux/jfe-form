@@ -5,7 +5,7 @@ import { pickQuestions } from "@/lib/testing";
 
 /** 練習用：正解・解説つきで出題（何回でも可・記録は残さない） */
 export const GET = handle(async () => {
-  await currentInspector();
+  await currentInspector({ only: "trainee" });
   const settings = await getSettings();
   const questions = await pickQuestions(settings.test_question_count);
   if (!questions.length) bad("テスト問題がまだ登録されていません");
