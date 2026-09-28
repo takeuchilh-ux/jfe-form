@@ -7,14 +7,14 @@ const API = "https://api.line.me";
 type LineMessage = Record<string, unknown>;
 
 function token() {
-  const t = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  const t = process.env.LINE_CHANNEL_ACCESS_TOKEN?.trim();
   if (!t) throw new Error("LINE_CHANNEL_ACCESS_TOKEN が未設定です");
   return t;
 }
 
 /** LIFF で取得した ID トークンを LINE で検証し、LINE ユーザー ID と表示名を返す */
 export async function verifyIdToken(idToken: string): Promise<{ userId: string; name: string }> {
-  const clientId = process.env.LINE_LOGIN_CHANNEL_ID;
+  const clientId = process.env.LINE_LOGIN_CHANNEL_ID?.trim();
   if (!clientId) throw new Error("LINE_LOGIN_CHANNEL_ID が未設定です");
   const res = await fetch(`${API}/oauth2/v2.1/verify`, {
     method: "POST",
@@ -51,7 +51,7 @@ export async function replyMessage(replyToken: string, messages: LineMessage[]) 
 }
 
 export function verifySignature(rawBody: string, signature: string | null): boolean {
-  const secret = process.env.LINE_CHANNEL_SECRET;
+  const secret = process.env.LINE_CHANNEL_SECRET?.trim();
   if (!secret || !signature) return false;
   const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("base64");
   const a = Buffer.from(expected);
@@ -61,7 +61,7 @@ export function verifySignature(rawBody: string, signature: string | null): bool
 
 /** LIFF の画面 URL（例: liffUrl("/liff/offers?month=2026-10")） */
 export function liffUrl(path: string) {
-  const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID?.trim();
   if (liffId) return `https://liff.line.me/${liffId}${path.replace(/^\/liff/, "")}`;
   return `${process.env.APP_BASE_URL ?? ""}${path}`;
 }

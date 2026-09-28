@@ -37,7 +37,7 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
   const path = usePathname();
 
   const boot = useCallback(async () => {
-    const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
+    const liffId = process.env.NEXT_PUBLIC_LIFF_ID?.trim();
     if (!liffId) return setState({ step: "error", message: "NEXT_PUBLIC_LIFF_ID が設定されていません" });
     const liff = (await import("@line/liff")).default;
     await liff.init({ liffId });
