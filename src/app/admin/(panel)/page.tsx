@@ -18,9 +18,10 @@ export default async function Dashboard() {
       };
     }),
   );
-  const [{ count: pendingExpenses }, { count: unlinked }] = await Promise.all([
+  const [{ count: pendingExpenses }, { count: unlinked }, { count: pendingTests }] = await Promise.all([
     db().from("kensa_expenses").select("id", { count: "exact", head: true }).eq("status", "submitted"),
     db().from("kensa_inspectors").select("id", { count: "exact", head: true }).eq("active", true).is("approved_at", null),
+    db().from("kensa_test_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
   return (
@@ -34,6 +35,10 @@ export default async function Dashboard() {
         <Link href="/admin/inspectors" className="stat">
           <div className="num">{unlinked ?? 0}</div>
           <div className="lbl">承認待ちの検査員</div>
+        </Link>
+        <Link href="/admin/tests?tab=requests" className="stat">
+          <div className="num">{pendingTests ?? 0}</div>
+          <div className="lbl">本番テストの申請（承認待ち）</div>
         </Link>
       </div>
       {summaries.map((s) => (

@@ -14,7 +14,6 @@ export type Me = {
   routeSearch: boolean;
   testQuestionCount: number;
   testPassScore: number;
-  testDailyLimit: number;
 };
 
 const Ctx = createContext<{ me: Me; refresh: () => Promise<void> } | null>(null);
