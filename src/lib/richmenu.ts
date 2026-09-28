@@ -136,14 +136,22 @@ export async function setupRichMenus(origin: string) {
 /**
  * 1 人分のメニューを区分・状態に合わせて切り替える。
  * 承認済みかつ有効なら区分のメニュー、それ以外は個別の割り当てを外して未登録者用（デフォルト）に戻す。
- * リッチメニュー未設定の場合は何もしない。失敗しても例外は投げずにメッセージを返す。
+ * リッチメニューがまだ登録されていなければ、origin を使って 3 種類を自動で登録する（全員への割り当ても行われる）。
+ * 失敗しても例外は投げずにメッセージを返す。
  */
-export async function syncUserRichMenu(p: { line_user_id: string | null; kind: Kind; active: boolean; approved_at: string | null }): Promise<string | null> {
+export async function syncUserRichMenu(
+  p: { line_user_id: string | null; kind: Kind; active: boolean; approved_at: string | null },
+  origin?: string,
+): Promise<string | null> {
   if (!p.line_user_id) return null;
   try {
-    const s = must(await db().from("kensa_settings").select("richmenu_inspector_id,richmenu_trainee_id").eq("id", 1).single());
+    let s = must(await db().from("kensa_settings").select("richmenu_inspector_id,richmenu_trainee_id").eq("id", 1).single());
+    if (!s.richmenu_inspector_id || !s.richmenu_trainee_id) {
+      if (!origin) return "リッチメニューが未登録です。「設定」→「リッチメニューを設定する」を押してください";
+      await setupRichMenus(origin);
+      s = must(await db().from("kensa_settings").select("richmenu_inspector_id,richmenu_trainee_id").eq("id", 1).single());
+    }
     const menuId = p.kind === "inspector" ? s.richmenu_inspector_id : s.richmenu_trainee_id;
-    if (!menuId) return null;
     if (p.active && p.approved_at) {
       await line(`/v2/bot/user/${p.line_user_id}/richmenu/${menuId}`, { method: "POST" });
     } else {
