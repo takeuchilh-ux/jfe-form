@@ -11,6 +11,6 @@ export const POST = handle(async (req: Request) => {
     .filter((r) => r.name);
   if (!rows.length) bad("取り込む行がありません");
   if (rows.length > 1000) bad("一度に取り込めるのは 1000 行までです");
-  must(await db().from("kensa_stores").insert(rows));
+  must(await db().from("kensa_stores").insert(rows).select("id"));
   return { count: rows.length };
 });

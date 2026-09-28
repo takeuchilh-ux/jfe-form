@@ -86,7 +86,7 @@ export const POST = handle(async (req: Request) => {
     .map((a) => ({ inspection_id: a.inspection_id as string, inspector_id: me.id, answer: a.answer as string, comment: str(a.comment, 300) }));
   const removes = answers.filter((a) => a.answer === null).map((a) => a.inspection_id as string);
 
-  if (upserts.length) must(await db().from("kensa_availabilities").upsert(upserts, { onConflict: "inspection_id,inspector_id" }));
+  if (upserts.length) must(await db().from("kensa_availabilities").upsert(upserts, { onConflict: "inspection_id,inspector_id" }).select("id"));
   if (removes.length) must(await db().from("kensa_availabilities").delete().eq("inspector_id", me.id).in("inspection_id", removes).select("id"));
   return { saved: upserts.length + removes.length };
 });
