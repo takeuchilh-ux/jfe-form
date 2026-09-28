@@ -5,7 +5,7 @@ import { db, must, RECEIPT_BUCKET } from "@/lib/supabase";
 import { trainTotal, type TrainLeg } from "@/lib/expense";
 import { monthRange, thisMonthJst, todayJst } from "@/lib/format";
 
-const MAX_FILES = 5;
+const MAX_FILES = 10;
 // Vercel のリクエスト上限（4.5MB）に収まるよう、画像はブラウザ側で縮小してから送信する
 const MAX_SIZE = 4 * 1024 * 1024;
 const EXT: Record<string, string> = {
@@ -17,50 +17,62 @@ const EXT: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
-/** 自分の交通費申請（月別）と、申請に紐づけられる担当検査 */
+const EXPENSE_SELECT =
+  "id,use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,created_at," +
+  "links:kensa_expense_inspections(inspection_id,inspection:kensa_inspections(time_slot,store:kensa_stores(name)))";
+
+type ExpenseDb = { receipt_paths: string[]; links: { inspection_id: string }[] } & Record<string, unknown>;
+const view = ({ receipt_paths, ...e }: ExpenseDb) => ({ ...e, receipt_count: receipt_paths.length });
+
+/**
+ * 交通費画面のデータ：
+ * - cases：直近 60 日〜今日の担当案件（日付ごと）と、案件に紐づく申請
+ * - history：指定月の申請履歴
+ */
 export const GET = handle(async (req: Request) => {
   const me = await currentInspector();
   const q = new URL(req.url).searchParams.get("month");
   const month = isMonth(q) ? q : thisMonthJst();
   const { start, end } = monthRange(month);
-  const expenses = must(
-    await db()
-      .from("kensa_expenses")
-      .select("id,use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,links:kensa_expense_inspections(inspection:kensa_inspections(time_slot,store:kensa_stores(name)))")
-      .eq("inspector_id", me.id)
-      .gte("use_date", start)
-      .lt("use_date", end)
-      .order("use_date", { ascending: false }),
-  ) as unknown as ({ receipt_paths: string[] } & Record<string, unknown>)[];
+  const from = new Date(Date.now() + 9 * 3600000 - 60 * 86400000).toISOString().slice(0, 10);
 
-  // 直近 60 日＋今日以前の担当検査
-  const from = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10);
-  const assigned = must(
-    await db()
+  const [history, recent, assigned] = await Promise.all([
+    db().from("kensa_expenses").select(EXPENSE_SELECT).eq("inspector_id", me.id).gte("use_date", start).lt("use_date", end).order("use_date", { ascending: false }).order("created_at", { ascending: false }),
+    db().from("kensa_expenses").select(EXPENSE_SELECT).eq("inspector_id", me.id).gte("use_date", from).order("created_at"),
+    db()
       .from("kensa_assignments")
-      .select("inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,store:kensa_stores(name,address))")
+      .select("role,inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,store:kensa_stores(name,address))")
       .eq("inspector_id", me.id)
       .gte("inspection.inspection_date", from)
       .lte("inspection.inspection_date", todayJst())
       .neq("inspection.status", "cancelled"),
-  ) as unknown as { inspection: { id: string; inspection_date: string; time_slot: string; store: { name: string; address: string } | null } }[];
+  ]);
+  const recentRows = (must(recent) as unknown as ExpenseDb[]).map(view);
+  const cases = (must(assigned) as unknown as {
+    role: string;
+    inspection: { id: string; inspection_date: string; time_slot: string; store: { name: string; address: string } | null };
+  }[])
+    .map(({ role, inspection: i }) => ({
+      id: i.id,
+      date: i.inspection_date,
+      time: i.time_slot,
+      store: i.store?.name ?? "",
+      address: i.store?.address ?? "",
+      role,
+      expenses: recentRows.filter((e) => (e.links as { inspection_id: string }[]).some((l) => l.inspection_id === i.id)),
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date) || a.time.localeCompare(b.time));
 
   return {
     month,
-    expenses: expenses.map(({ receipt_paths, ...e }) => ({ ...e, receipt_count: receipt_paths.length })),
-    inspections: assigned
-      .map(({ inspection: i }) => ({
-        id: i.id,
-        date: i.inspection_date,
-        time: i.time_slot,
-        store: i.store?.name ?? "",
-        address: i.store?.address ?? "",
-      }))
-      .sort((a, b) => b.date.localeCompare(a.date)),
+    cases,
+    // 案件に紐づかない直近の申請
+    others: recentRows.filter((e) => !(e.links as unknown[]).length),
+    history: (must(history) as unknown as ExpenseDb[]).map(view),
   };
 });
 
-/** 交通費申請（multipart/form-data。車の駐車場代にはレシート画像が必須） */
+/** 交通費申請（multipart/form-data。レシート画像は任意で最大 10 枚） */
 export const POST = handle(async (req: Request) => {
   const me = await currentInspector();
   const form = await req.formData().catch(() => bad("リクエストの形式が不正です"));
@@ -115,11 +127,12 @@ export const POST = handle(async (req: Request) => {
   }
 
   if (files.length > MAX_FILES) bad(`添付は ${MAX_FILES} 枚までです`);
+  if (files.reduce((n, f) => n + f.size, 0) > MAX_SIZE) bad("添付ファイルの合計サイズが大きすぎます。枚数を減らして申請してください");
   const paths: string[] = [];
   for (const f of files) {
     const ext = EXT[f.type];
     if (!ext) bad("添付できるのは画像（JPEG/PNG/HEIC/WebP）または PDF です");
-    if (f.size > MAX_SIZE) bad("添付ファイルが大きすぎます（1 枚 4MB まで）");
+    if (f.size > MAX_SIZE) bad("添付ファイルが大きすぎます");
   }
   try {
     for (const f of files) {

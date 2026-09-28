@@ -50,8 +50,8 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
-/** 画像をブラウザ側で縮小（長辺 1600px・JPEG）。PDF や縮小できない形式はそのまま返す */
-export async function shrinkImage(file: File, maxSide = 1600): Promise<File> {
+/** 画像をブラウザ側で縮小（長辺 1280px・JPEG）。PDF や縮小できない形式はそのまま返す */
+export async function shrinkImage(file: File, maxSide = 1280): Promise<File> {
   if (!file.type.startsWith("image/") || file.type === "image/heic" || file.type === "image/heif") return file;
   try {
     const bmp = await createImageBitmap(file);
@@ -60,7 +60,7 @@ export async function shrinkImage(file: File, maxSide = 1600): Promise<File> {
     canvas.width = Math.round(bmp.width * scale);
     canvas.height = Math.round(bmp.height * scale);
     canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.82));
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.75));
     if (!blob || blob.size >= file.size) return file;
     return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
   } catch {
