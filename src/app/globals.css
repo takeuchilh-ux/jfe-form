@@ -172,3 +172,25 @@ tr.dim td { opacity: .5; }
 .review-cell .no { font-size: 11px; color: var(--muted); }
 .review-cell .mk { font-size: 18px; font-weight: 700; }
 .review-cell.empty { background: var(--warn-weak); border-color: var(--warn); }
+
+/* 折りたたみ（details） */
+details.acc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; }
+details.acc > summary, details.exp-line > summary {
+  list-style: none; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+}
+details.acc > summary { padding: 12px 14px; }
+details.acc > summary::-webkit-details-marker, details.exp-line > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after, details.exp-line > summary::after { content: "›"; color: var(--muted); font-size: 18px; transition: transform .15s; }
+details[open].acc > summary::after, details[open].exp-line > summary::after { transform: rotate(90deg); }
+.acc-body { padding: 0 14px 12px; }
+.case-row { border-top: 1px solid var(--border); padding: 10px 0; }
+.case-row:first-of-type { border-top: none; }
+details.exp-line { background: #f8faf9; border-radius: 8px; padding: 6px 10px; margin-top: 6px; }
+.route { border-left: 3px solid var(--primary-weak); padding-left: 10px; }
+
+/* レシート */
+.receipt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.receipt-thumb { position: relative; aspect-ratio: 1; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8faf9; }
+.receipt-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.receipt-thumb button { position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; cursor: pointer; }
+.receipt-add { aspect-ratio: 1; border: 2px dashed var(--border); border-radius: 8px; background: #fff; color: var(--muted); font: inherit; font-size: 13px; white-space: pre-line; cursor: pointer; }
