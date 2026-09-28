@@ -13,8 +13,8 @@ export default async function ExpensesPage({ searchParams }: Props) {
   let q = db()
     .from("kensa_expenses")
     .select(
-      "id,use_date,transport,distance_km,route_from,route_to,round_trip,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,created_at," +
-        "inspector:kensa_inspectors(name),inspection:kensa_inspections(time_slot,store:kensa_stores(name))",
+      "id,use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,created_at," +
+        "inspector:kensa_inspectors(name),links:kensa_expense_inspections(inspection:kensa_inspections(time_slot,store:kensa_stores(name)))",
     )
     .order("use_date")
     .order("created_at");

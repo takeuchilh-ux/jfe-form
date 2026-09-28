@@ -8,16 +8,14 @@ type Row = {
   use_date: string;
   transport: string;
   distance_km: number | null;
-  route_from: string;
-  route_to: string;
-  round_trip: boolean;
+  route_stops: string[];
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
   note: string;
   status: string;
   inspector: { name: string } | null;
-  inspection: { store: { name: string } | null } | null;
+  links: { inspection: { store: { name: string } | null } | null }[];
 };
 
 function csvCell(v: unknown) {
@@ -34,7 +32,7 @@ export const GET = handle(async (req: Request) => {
   const rows = must(
     await db()
       .from("kensa_expenses")
-      .select("use_date,transport,distance_km,route_from,route_to,round_trip,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),inspection:kensa_inspections(store:kensa_stores(name))")
+      .select("use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),links:kensa_expense_inspections(inspection:kensa_inspections(store:kensa_stores(name)))")
       .gte("use_date", start)
       .lt("use_date", end)
       .order("use_date"),
@@ -44,10 +42,10 @@ export const GET = handle(async (req: Request) => {
     [
       r.use_date,
       r.inspector?.name,
-      r.inspection?.store?.name,
+      r.links.map((l) => l.inspection?.store?.name).filter(Boolean).join("、"),
       r.transport === "car" ? "車" : "電車",
       r.distance_km ?? "",
-      r.transport === "car" ? `${r.route_from}→${r.route_to}${r.round_trip ? "(往復)" : ""}` : "",
+      r.transport === "car" ? r.route_stops.join("→") : "",
       r.transport === "car" ? r.parking_fee : "",
       (r.train_legs ?? []).map((l) => `${l.from}→${l.to} ${l.fare}円${l.round_trip ? "(往復)" : ""}`).join(" / "),
       r.amount,

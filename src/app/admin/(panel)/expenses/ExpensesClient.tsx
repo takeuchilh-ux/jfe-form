@@ -11,9 +11,7 @@ export type ExpenseRow = {
   use_date: string;
   transport: "car" | "train";
   distance_km: number | null;
-  route_from: string;
-  route_to: string;
-  round_trip: boolean;
+  route_stops: string[];
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -22,7 +20,7 @@ export type ExpenseRow = {
   admin_comment: string;
   receipt_paths: string[];
   inspector: { name: string } | null;
-  inspection: { time_slot: string; store: { name: string } | null } | null;
+  links: { inspection: { time_slot: string; store: { name: string } | null } | null }[];
 };
 
 const BADGE: Record<string, string> = { submitted: "info", approved: "ok", rejected: "ng", paid: "" };
@@ -115,7 +113,7 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
               <tr key={r.id}>
                 <td className="nowrap">{fmtDate(r.use_date)}</td>
                 <td className="nowrap">{r.inspector?.name}</td>
-                <td>{r.inspection?.store?.name ?? <span className="muted">—</span>}</td>
+                <td>{storeNames(r) || <span className="muted">—</span>}</td>
                 <td>{r.transport === "car" ? "🚗 車" : "🚃 電車"}</td>
                 <td className="small">
                   <Detail r={r} />
@@ -144,7 +142,7 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
               {open.inspector?.name} ／ {fmtDate(open.use_date)} <span className={`badge ${BADGE[open.status]}`}>{EXPENSE_STATUS[open.status]}</span>
             </h2>
             {error && <div className="alert error">{error}</div>}
-            <p>店舗：{open.inspection?.store?.name ?? "（指定なし）"}</p>
+            <p>店舗：{storeNames(open) || "（指定なし）"}</p>
             <p>
               <Detail r={open} />
             </p>
@@ -198,17 +196,23 @@ export default function ExpensesClient({ rows }: { rows: ExpenseRow[] }) {
   );
 }
 
+function storeNames(r: ExpenseRow) {
+  return r.links
+    .map((l) => l.inspection?.store?.name)
+    .filter(Boolean)
+    .join("、");
+}
+
 function Detail({ r }: { r: ExpenseRow }) {
   if (r.transport === "car") {
     return (
       <>
         <strong>{r.distance_km}km</strong>
-        {r.round_trip && "（往復）"}
         {r.parking_fee > 0 && ` ／ 駐車場 ${yen(r.parking_fee)}`}
-        {(r.route_from || r.route_to) && (
+        {r.route_stops.length >= 2 && (
           <div>
-            <a href={mapsDirUrl(r.route_from, r.route_to)} target="_blank" rel="noreferrer">
-              {r.route_from} → {r.route_to}
+            <a href={mapsDirUrl(r.route_stops)} target="_blank" rel="noreferrer">
+              {r.route_stops.join(" → ")}
             </a>
           </div>
         )}

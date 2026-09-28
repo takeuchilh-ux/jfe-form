@@ -30,7 +30,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
 export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
   await requireAdmin();
   const { id } = await params;
-  const { count } = await db().from("kensa_expenses").select("id", { count: "exact", head: true }).eq("inspection_id", id);
+  const { count } = await db().from("kensa_expense_inspections").select("expense_id", { count: "exact", head: true }).eq("inspection_id", id);
   if (count) bad("交通費申請が紐づいているため削除できません。「中止」にしてください");
   must(await db().from("kensa_inspections").delete().eq("id", id).select("id"));
 });

@@ -26,7 +26,7 @@ export const GET = handle(async (req: Request) => {
   const expenses = must(
     await db()
       .from("kensa_expenses")
-      .select("id,use_date,transport,distance_km,route_from,route_to,round_trip,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,inspection:kensa_inspections(store:kensa_stores(name))")
+      .select("id,use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,links:kensa_expense_inspections(inspection:kensa_inspections(time_slot,store:kensa_stores(name)))")
       .eq("inspector_id", me.id)
       .gte("use_date", start)
       .lt("use_date", end)
@@ -66,25 +66,25 @@ export const POST = handle(async (req: Request) => {
   const form = await req.formData().catch(() => bad("リクエストの形式が不正です"));
   const useDate = form.get("use_date");
   const transport = form.get("transport");
-  const inspectionId = form.get("inspection_id");
+  const inspectionIds = [...new Set(form.getAll("inspection_ids").map(String))];
   const note = str(form.get("note"), 500);
   if (!isDate(useDate)) bad("利用日を入力してください");
   if (useDate > todayJst()) bad("未来の日付は申請できません");
   if (transport !== "car" && transport !== "train") bad("交通手段を選択してください");
 
-  let inspection_id: string | null = null;
-  if (inspectionId) {
-    if (!isUuid(inspectionId)) bad("検査の指定が不正です");
+  // 1 日に複数店舗を回る場合に備え、対象の検査は複数指定可
+  if (inspectionIds.length > 20) bad("対象の検査が多すぎます");
+  if (inspectionIds.some((id) => !isUuid(id))) bad("検査の指定が不正です");
+  if (inspectionIds.length) {
     const { count } = await db()
       .from("kensa_assignments")
       .select("id", { count: "exact", head: true })
-      .eq("inspection_id", inspectionId)
+      .in("inspection_id", inspectionIds)
       .eq("inspector_id", me.id);
-    if (!count) bad("担当していない検査は選択できません");
-    inspection_id = inspectionId;
+    if (count !== inspectionIds.length) bad("担当していない検査は選択できません");
   }
 
-  const row: Record<string, unknown> = { inspector_id: me.id, inspection_id, use_date: useDate, transport, note };
+  const row: Record<string, unknown> = { inspector_id: me.id, use_date: useDate, transport, note };
   const files = form.getAll("receipts").filter((f): f is File => f instanceof File && f.size > 0);
 
   if (transport === "car") {
@@ -92,13 +92,10 @@ export const POST = handle(async (req: Request) => {
     const parking = Math.round(Number(form.get("parking_fee") || 0));
     if (!Number.isFinite(distance) || distance <= 0 || distance > 2000) bad("走行距離（km）を正しく入力してください");
     if (!Number.isFinite(parking) || parking < 0 || parking > 100000) bad("駐車場代を正しく入力してください");
-    if (parking > 0 && !files.length) bad("駐車場代がある場合はレシート画像を添付してください");
     // 車は距離（km）を記録。金額は駐車場代のみ（距離の精算方法は管理側で決定）
     Object.assign(row, {
       distance_km: Math.round(distance * 10) / 10,
-      route_from: str(form.get("route_from"), 300),
-      route_to: str(form.get("route_to"), 300),
-      round_trip: form.get("round_trip") === "1",
+      route_stops: parseStops(form.get("route_stops")),
       parking_fee: parking,
       amount: parking,
     });
@@ -131,9 +128,30 @@ export const POST = handle(async (req: Request) => {
       paths.push(path);
     }
     row.receipt_paths = paths;
-    return must(await db().from("kensa_expenses").insert(row).select("id,amount").single());
+    const created = must(await db().from("kensa_expenses").insert(row).select("id,amount").single());
+    if (inspectionIds.length) {
+      const link = await db()
+        .from("kensa_expense_inspections")
+        .insert(inspectionIds.map((inspection_id) => ({ expense_id: created.id, inspection_id })));
+      if (link.error) {
+        await db().from("kensa_expenses").delete().eq("id", created.id);
+        throw new Error(link.error.message);
+      }
+    }
+    return created;
   } catch (e) {
     if (paths.length) await db().storage.from(RECEIPT_BUCKET).remove(paths);
     throw e;
   }
 });
+
+/** 車の経路（出発地 → 経由地 → 到着地）の JSON 配列を検証 */
+function parseStops(v: FormDataEntryValue | null): string[] {
+  try {
+    const arr = JSON.parse(String(v ?? "[]"));
+    if (!Array.isArray(arr)) return [];
+    return arr.map((s) => str(s, 300)).filter(Boolean).slice(0, 10);
+  } catch {
+    return [];
+  }
+}
