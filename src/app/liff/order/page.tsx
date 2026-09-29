@@ -5,7 +5,7 @@ import LiffHeader from "@/components/LiffHeader";
 import { useMe } from "@/components/LiffProvider";
 import { api, errMsg } from "@/lib/client";
 import { todayJst } from "@/lib/format";
-import { ORDER_PRODUCTS, deliveryText, type OrderItem } from "@/lib/order";
+import { ORDER_MAIL_SUBJECT, ORDER_MAIL_TO, ORDER_PRODUCTS, deliveryText, orderMailBody, orderMailtoUrl, type OrderItem } from "@/lib/order";
 
 type Order = { id: string; company: string; items: OrderItem[]; delivery: string; note: string; mail_status: string; created_at: string };
 
@@ -19,14 +19,16 @@ export default function OrderPage() {
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [history, setHistory] = useState<Order[] | null>(null);
+  const [lastName, setLastName] = useState(me.name.split(/\s/)[0]);
   const [msg, setMsg] = useState<{ type: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = () =>
-    api<{ orders: Order[]; lastCompany: string }>("/api/liff/orders")
+    api<{ orders: Order[]; lastCompany: string; lastName: string }>("/api/liff/orders")
       .then((r) => {
         setHistory(r.orders);
         setCompany((c) => c || r.lastCompany);
+        if (r.lastName) setLastName(r.lastName);
       })
       .catch((e) => setMsg({ type: "error", text: errMsg(e) }));
   useEffect(() => {
@@ -46,32 +48,39 @@ export default function OrderPage() {
   const delivery = deliveryMode === "asap" ? "asap" : date;
   const setN = (name: string, n: number) => setQty({ ...qty, [name]: Math.max(0, Math.min(9999, Math.round(n) || 0)) });
 
-  async function send() {
+  const mailBody = orderMailBody({ company, lastName, items, note, delivery });
+
+  /** メールアプリを開くのと同時に、発注内容を記録する（画面はそのまま残る） */
+  function recordOrder() {
     setBusy(true);
     setMsg(null);
-    try {
-      const r = await api<{ sent: boolean; error?: string }>("/api/liff/orders", { body: { company, items, delivery, note } });
-      if (r.sent) {
-        setMsg({ type: "success", text: "発注しました。担当者へメールを送信しました。" });
+    api("/api/liff/orders", { body: { company, items, delivery, note } })
+      .then(() => {
+        setMsg({ type: "success", text: "メールアプリで下書きを作成しました。内容を確認して送信してください。" });
         setQty({});
         setNote("");
         setDeliveryMode("asap");
-      } else {
-        setMsg({ type: "warn", text: r.error ?? "メールを送信できませんでした" });
-      }
-      setConfirming(false);
-      load();
-    } catch (e) {
-      setMsg({ type: "error", text: errMsg(e) });
-    } finally {
-      setBusy(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+        setConfirming(false);
+        load();
+      })
+      .catch((e) => setMsg({ type: "error", text: errMsg(e) }))
+      .finally(() => {
+        setBusy(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+  }
+
+  async function copy(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setMsg({ type: "success", text: `${label}をコピーしました` });
+    } catch {
+      setMsg({ type: "error", text: "コピーできませんでした" });
     }
   }
 
   // 確認画面
   if (confirming) {
-    const lastName = me.name.split(/\s/)[0];
     return (
       <main className="liff">
         <div className="liff-header">
@@ -96,38 +105,40 @@ export default function OrderPage() {
         </div>
         <details className="acc">
           <summary>
-            <span className="grow small">送信されるメールの本文を見る</span>
+            <span className="grow small">作成されるメールを見る</span>
           </summary>
           <div className="acc-body">
-            <pre className="mail-preview">
-              {[
-                "件名：備品発注について",
-                "",
-                "JFE東日本ジーエス株式会社",
-                "八木様",
-                "",
-                "いつもお世話になっております。",
-                company ? `${company}の${lastName}です。` : `${lastName}です。`,
-                "",
-                "下記備品の発注をお願いしたくご連絡させていただきました。",
-                "",
-                ...items.map((i) => `${i.name}×${i.qty}`),
-                "",
-                "【備考】",
-                note || "なし",
-                "",
-                "【納品希望日】",
-                deliveryText(delivery),
-                "",
-                "以上",
-                "…",
-              ].join("\n")}
-            </pre>
+            <pre className="mail-preview">{`宛先：${ORDER_MAIL_TO}\n件名：${ORDER_MAIL_SUBJECT}\n\n${mailBody}`}</pre>
           </div>
         </details>
-        <button className="btn primary block lg" disabled={busy} onClick={send}>
-          {busy ? "送信中…" : "この内容で発注する"}
-        </button>
+        <a className={`btn primary block lg ${busy ? "disabled" : ""}`} href={orderMailtoUrl(mailBody)} onClick={recordOrder}>
+          📧 メールアプリで作成する
+        </a>
+        <p className="small muted mt">
+          iPhone は「メール」、Android は既定のメールアプリが開き、宛先・件名・本文が入った状態になります。内容を確認して送信してください。
+        </p>
+        <details className="acc">
+          <summary>
+            <span className="grow small">メールアプリが開かない場合</span>
+          </summary>
+          <div className="acc-body">
+            <p className="small">宛先と本文をコピーして、お使いのメールアプリに貼り付けてください。</p>
+            <div className="row">
+              <button className="btn sm" onClick={() => copy(ORDER_MAIL_TO, "宛先")}>
+                宛先をコピー
+              </button>
+              <button className="btn sm" onClick={() => copy(ORDER_MAIL_SUBJECT, "件名")}>
+                件名をコピー
+              </button>
+              <button className="btn sm" onClick={() => copy(mailBody, "本文")}>
+                本文をコピー
+              </button>
+            </div>
+            <button className="btn block mt" disabled={busy} onClick={recordOrder}>
+              コピーして送った（発注を記録する）
+            </button>
+          </div>
+        </details>
       </main>
     );
   }
@@ -218,7 +229,7 @@ export default function OrderPage() {
             <div key={o.id} className="case-row small">
               <div className="row between">
                 <strong>{new Date(o.created_at).toLocaleDateString("ja-JP")}</strong>
-                {o.mail_status === "sent" ? <span className="badge ok">送信済</span> : <span className="badge ng">未送信</span>}
+                {o.mail_status === "sent" ? <span className="badge ok">送信済</span> : <span className="badge info">メール作成</span>}
               </div>
               <div>{o.items.map((i) => `${i.name}×${i.qty}`).join("、")}</div>
               <div className="muted">納品希望日：{deliveryText(o.delivery)}</div>

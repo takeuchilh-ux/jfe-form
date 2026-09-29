@@ -12,6 +12,8 @@ export const ORDER_PRODUCTS = [
 ] as const;
 
 export const ORDER_MAIL_SUBJECT = "備品発注について";
+/** 発注メールの宛先（固定） */
+export const ORDER_MAIL_TO = "takeuchi.nxtb@gmail.com";
 
 export type OrderItem = { name: string; qty: number };
 
@@ -48,4 +50,10 @@ export function orderMailBody(o: { company: string; lastName: string; items: Ord
     "マスターズスタッフ株式会社",
     "伊藤",
   ].join("\n");
+}
+
+/** 端末のメールアプリで下書きを開く mailto: URL（iPhone は「メール」、Android は既定のメールアプリ） */
+export function orderMailtoUrl(body: string) {
+  const q = `subject=${encodeURIComponent(ORDER_MAIL_SUBJECT)}&body=${encodeURIComponent(body.replace(/\r?\n/g, "\r\n"))}`;
+  return `mailto:${ORDER_MAIL_TO}?${q}`;
 }

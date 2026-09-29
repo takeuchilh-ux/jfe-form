@@ -17,7 +17,7 @@ export type OrderRow = {
   created_at: string;
 };
 
-export default function OrdersClient({ rows }: { rows: OrderRow[] }) {
+export default function OrdersClient({ rows, canSend }: { rows: OrderRow[]; canSend: boolean }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ type: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -79,6 +79,8 @@ export default function OrdersClient({ rows }: { rows: OrderRow[] }) {
                 <td>
                   {o.mail_status === "sent" ? (
                     <span className="badge ok">送信済</span>
+                  ) : o.mail_status === "draft" ? (
+                    <span className="badge info">メールアプリで作成</span>
                   ) : (
                     <>
                       <span className="badge ng">未送信</span>
@@ -87,6 +89,7 @@ export default function OrdersClient({ rows }: { rows: OrderRow[] }) {
                   )}
                 </td>
                 <td className="nowrap">
+                  {canSend && (
                   <button
                     className="btn sm"
                     disabled={busy}
@@ -95,8 +98,9 @@ export default function OrdersClient({ rows }: { rows: OrderRow[] }) {
                       act(() => api(`/api/admin/orders/${o.id}`, { method: "POST" }), "メールを送信しました")
                     }
                   >
-                    {o.mail_status === "sent" ? "再送" : "送信"}
-                  </button>{" "}
+                    {o.mail_status === "sent" ? "再送" : "サーバーから送信"}
+                  </button>
+                  )}{" "}
                   <button className="btn sm danger" disabled={busy} onClick={() => confirm("この発注の記録を削除しますか？") && act(() => api(`/api/admin/orders/${o.id}`, { method: "DELETE" }), "削除しました")}>
                     削除
                   </button>

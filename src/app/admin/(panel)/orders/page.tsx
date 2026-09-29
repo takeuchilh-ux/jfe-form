@@ -10,10 +10,9 @@ export default async function OrdersPage() {
     <>
       <h1>備品の発注</h1>
       <p className="muted small">
-        検査員が LINE の「発注」から送信した内容です。メールの送信先：<code>{ORDER_MAIL_TO}</code>
+        検査員が LINE の「発注」から作成した内容です。メールは検査員のスマホのメールアプリで作成・送信されます（宛先：<code>{ORDER_MAIL_TO}</code>）。
       </p>
-      {!mailConfigured() && <div className="alert warn">メール送信が未設定です。「設定」→「メール送信」を確認してください。</div>}
-      <OrdersClient rows={rows} />
+      <OrdersClient rows={rows} canSend={mailConfigured()} />
     </>
   );
 }
