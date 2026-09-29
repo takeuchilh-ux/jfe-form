@@ -262,3 +262,13 @@ details.exp-line { background: #f8faf9; border-radius: 8px; padding: 6px 10px; m
 .mail-preview { white-space: pre-wrap; font-family: inherit; font-size: 13px; background: #f8faf9; border-radius: 8px; padding: 10px; margin: 0; }
 
 .btn.disabled { opacity: .5; pointer-events: none; }
+.qty-meta { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+.qty-unit { width: 22px; font-size: 13px; color: var(--muted); }
+@media (max-width: 420px) {
+  .qty-row { gap: 4px; }
+  .qty-row .grow { font-size: 14px; }
+  .qty-btn { width: 34px; height: 34px; font-size: 18px; }
+  .qty-input { width: 50px !important; padding: 6px 4px !important; }
+  .qty-unit { width: 16px; font-size: 12px; }
+  .qty-meta { white-space: nowrap; }
+}

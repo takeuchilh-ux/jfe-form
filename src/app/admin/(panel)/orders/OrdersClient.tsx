@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/lib/client";
-import { deliveryText, type OrderItem } from "@/lib/order";
+import { deliveryText, itemLine, type OrderItem } from "@/lib/order";
 
 export type OrderRow = {
   id: string;
@@ -69,9 +69,7 @@ export default function OrdersClient({ rows, canSend }: { rows: OrderRow[]; canS
                 </td>
                 <td className="small">
                   {o.items.map((i) => (
-                    <div key={i.name}>
-                      {i.name} × {i.qty}
-                    </div>
+                    <div key={i.name}>{itemLine(i)}</div>
                   ))}
                 </td>
                 <td className="nowrap">{deliveryText(o.delivery)}</td>

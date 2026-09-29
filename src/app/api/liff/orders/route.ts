@@ -1,7 +1,7 @@
 import { handle, body, str, int, isDate, bad } from "@/lib/api";
 import { currentInspector } from "@/lib/inspector";
 import { db, must } from "@/lib/supabase";
-import { ORDER_PRODUCTS, type OrderItem } from "@/lib/order";
+import { findProduct, type OrderItem } from "@/lib/order";
 import { todayJst } from "@/lib/format";
 
 /** 自分の発注履歴（直近 20 件）と、メール本文に使う名字・前回の会社名 */
@@ -28,9 +28,14 @@ export const POST = handle(async (req: Request) => {
   const b = await body<{ company?: unknown; items?: { name?: unknown; qty?: unknown }[]; delivery?: unknown; note?: unknown }>(req);
   const company = str(b.company, 100);
   const note = str(b.note, 1000);
+  // 単位・入数は発注時点の内容を記録しておく
   const items: OrderItem[] = (b.items ?? [])
     .map((i) => ({ name: str(i.name, 50), qty: int(i.qty, 0) }))
-    .filter((i) => (ORDER_PRODUCTS as readonly string[]).includes(i.name) && i.qty > 0);
+    .filter((i) => i.qty > 0)
+    .flatMap((i) => {
+      const p = findProduct(i.name);
+      return p ? [{ name: p.name, qty: i.qty, unit: p.unit, per: p.per }] : [];
+    });
   if (!items.length) bad("発注する商品の個数を入力してください");
   if (items.some((i) => i.qty > 9999)) bad("個数が多すぎます");
   const delivery = b.delivery === "asap" ? "asap" : b.delivery;
