@@ -20,6 +20,7 @@ const LINKS: Item[] = [
   { href: "/admin/tests", label: "50問テスト", short: "テスト", icon: "📝", badge: "tests" },
   { href: "/admin/inspectors", label: "検査員", short: "検査員", icon: "🧑‍🔬", badge: "inspectors" },
   { href: "/admin/stores", label: "店舗", short: "店舗", icon: "🏪" },
+  { href: "/admin/orders", label: "備品の発注", short: "発注", icon: "📦" },
   { href: "/admin/settings", label: "設定", short: "設定", icon: "⚙️" },
 ];
 

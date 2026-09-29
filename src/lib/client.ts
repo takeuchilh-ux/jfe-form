@@ -69,3 +69,30 @@ export async function shrinkImage(file: File, maxSide = 1280): Promise<File> {
     return file;
   }
 }
+
+/** CSV をダウンロード（Excel で文字化けしないよう BOM 付き UTF-8） */
+export function downloadCsv(filename: string, rows: (string | number)[][]) {
+  const cell = (v: string | number) => {
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const text = "﻿" + rows.map((r) => r.map(cell).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** CSV ファイルを文字列で読み込む（UTF-8 で文字化けする場合は Excel 既定の Shift_JIS として読み直す） */
+export async function readCsvFile(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const utf8 = new TextDecoder("utf-8").decode(buf);
+  if (!utf8.includes("�")) return utf8;
+  try {
+    return new TextDecoder("shift_jis").decode(buf);
+  } catch {
+    return utf8;
+  }
+}

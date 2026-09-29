@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg, parseCsv } from "@/lib/client";
+import CsvTools from "@/components/CsvTools";
 import type { Settings } from "@/lib/data";
 import { fmtDate, todayJst } from "@/lib/format";
 
@@ -153,6 +154,15 @@ export default function TestsClient({
           {csv !== null && (
             <div className="card">
               <p className="muted">「カテゴリ,テーマ,問題文,正解(○ または ×),解説」の順で貼り付けてください。</p>
+              <CsvTools
+                filename="50問テスト_問題.csv"
+                template={[
+                  ["カテゴリ", "テーマ", "問題文", "正解(○/×)", "解説"],
+                  ["身だしなみ", "watch", "腕時計は厨房に入る前に外す。", "○", "腕時計は厨房入室前に外します。"],
+                  ["身だしなみ", "watch", "腕時計は着けたまま厨房に入ってよい。", "×", "腕時計は厨房入室前に外します。"],
+                ]}
+                onLoad={setCsv}
+              />
               <textarea rows={6} value={csv} onChange={(e) => setCsv(e.target.value)} />
               <button
                 className="btn primary mt"
