@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/lib/client";
 import { fmtDate } from "@/lib/format";
@@ -11,7 +11,7 @@ type Insp = { id: string; name: string; active: boolean; linked: boolean; kind: 
 export default function AssignClient({
   periodId,
   periodStatus,
-  inspections,
+  inspections: serverInspections,
   inspectors,
 }: {
   periodId: string;
@@ -20,6 +20,22 @@ export default function AssignClient({
   inspectors: Insp[];
 }) {
   const router = useRouter();
+  // 押した瞬間に表示へ反映するための一時的な上書き（保存・再読込が終わったら消す）
+  const [overrides, setOverrides] = useState<Record<string, string[]>>({});
+  useEffect(() => setOverrides({}), [serverInspections]);
+  const inspections = useMemo(
+    () =>
+      serverInspections.map((i) => {
+        const ids = overrides[i.id];
+        if (!ids) return i;
+        const keep = i.assignments.filter((a) => ids.includes(a.inspector_id));
+        const added = ids
+          .filter((id) => !i.assignments.some((a) => a.inspector_id === id))
+          .map((id) => ({ inspector_id: id, notified_at: null, role: (inspectors.find((p) => p.id === id)?.kind === "trainee" ? "trainee" : "main") as "main" | "trainee" }));
+        return { ...i, assignments: [...keep, ...added] };
+      }),
+    [serverInspections, overrides, inspectors],
+  );
   const [msg, setMsg] = useState<{ type: "error" | "success" | "warn"; text: string } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -49,15 +65,19 @@ export default function AssignClient({
   const list = onlyOpen ? inspections.filter((i) => mainCount(i) < i.required_count) : inspections;
 
   async function setAssign(ins: InspectionRow, ids: string[]) {
-    setBusy(ins.id);
+    setOverrides((o) => ({ ...o, [ins.id]: ids }));
     setMsg(null);
     try {
       await api("/api/admin/assignments", { method: "PUT", body: { inspection_id: ins.id, inspector_ids: ids } });
-      router.refresh();
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
+      setOverrides((o) => {
+        const n = { ...o };
+        delete n[ins.id];
+        return n;
+      });
     } finally {
-      setBusy(null);
+      router.refresh();
     }
   }
 
@@ -149,7 +169,7 @@ export default function AssignClient({
                   <span
                     key={a.inspector_id}
                     className={`chip ${assigned.includes(a.inspector_id) ? "on" : ""}`}
-                    onClick={() => busy === null && toggle(a.inspector_id)}
+                    onClick={() => busy !== "notify" && toggle(a.inspector_id)}
                     title={a.comment}
                   >
                     {assigned.includes(a.inspector_id) ? "✓ " : ""}
@@ -162,7 +182,7 @@ export default function AssignClient({
                   </span>
                 ))}
                 {extra.map((id) => (
-                  <span key={id} className="chip on" onClick={() => busy === null && toggle(id)}>
+                  <span key={id} className="chip on" onClick={() => busy !== "notify" && toggle(id)}>
                     ✓ {name(id)}（例外アサイン）
                   </span>
                 ))}
@@ -170,7 +190,7 @@ export default function AssignClient({
                   className="inline"
                   style={{ minHeight: 30, fontSize: 13, padding: "2px 8px" }}
                   value=""
-                  disabled={busy !== null}
+                  disabled={busy === "notify"}
                   onChange={(e) => e.target.value && setAssign(ins, [...assigned, e.target.value])}
                 >
                   <option value="">＋ 回答以外の{trainee ? "研修生" : "検査員"}を追加…</option>
