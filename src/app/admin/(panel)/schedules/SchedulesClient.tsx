@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, errMsg, parseCsv } from "@/lib/client";
+import CsvTools from "@/components/CsvTools";
 import { fmtDate, fmtMonth, PERIOD_STATUS } from "@/lib/format";
 import type { InspectionRow, Period, Store } from "@/lib/data";
 
@@ -402,6 +403,15 @@ function BulkAdd({ month, periodId, stores, busy, run }: { month: string; period
       <p className="muted">
         1 行 1 検査で「日付,店舗名,時間帯,人数,備考」の順に貼り付けてください（Excel からのコピーも可）。店舗名は店舗マスタと完全一致が必要です。
       </p>
+      <CsvTools
+        filename={`検査スケジュール_${month}.csv`}
+        template={[
+          ["日付", "店舗名", "時間帯", "人数", "備考"],
+          [`${month}-05`, stores[0]?.name ?? "店舗名", "10:00〜", 1, ""],
+          [`${month}-06`, stores[1]?.name ?? stores[0]?.name ?? "店舗名", "14:00〜", 2, "研修同行あり"],
+        ]}
+        onLoad={setText}
+      />
       <textarea
         rows={8}
         value={text}

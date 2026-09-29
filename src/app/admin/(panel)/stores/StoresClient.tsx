@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg, parseCsv } from "@/lib/client";
+import CsvTools from "@/components/CsvTools";
 import type { Store } from "@/lib/data";
 
 type Form = { name: string; group_name: string; area: string; address: string; notes: string };
@@ -66,6 +67,14 @@ export default function StoresClient({ stores }: { stores: Store[] }) {
       {csv !== null && (
         <div className="card">
           <p className="muted">「店舗名,運営会社,エリア,住所」の順で貼り付けてください。</p>
+          <CsvTools
+            filename="店舗マスタ.csv"
+            template={[
+              ["店舗名", "運営会社", "エリア", "住所"],
+              ["〇〇食堂 横浜駅前店", "株式会社〇〇", "横浜", "神奈川県横浜市西区〇〇1-2-3"],
+            ]}
+            onLoad={setCsv}
+          />
           <textarea rows={6} value={csv} onChange={(e) => setCsv(e.target.value)} />
           <button
             className="btn primary mt"

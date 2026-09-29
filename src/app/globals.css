@@ -251,3 +251,12 @@ details.exp-line { background: #f8faf9; border-radius: 8px; padding: 6px 10px; m
 .admin-tabbar .ic, .sheet-grid .ic { position: relative; }
 .admin-tabbar .nav-badge, .sheet-grid .nav-badge { position: absolute; top: -6px; right: -12px; margin: 0; border: 2px solid #16322b; }
 .sheet-grid .nav-badge { border-color: #fff; }
+
+/* 発注：個数入力 */
+.qty-row { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.qty-row:last-child { border-bottom: none; }
+.qty-row.on .grow { font-weight: 700; color: var(--primary); }
+.qty-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: #fff; font-size: 20px; line-height: 1; cursor: pointer; color: var(--text); }
+.qty-btn:disabled { opacity: .35; }
+.qty-input { width: 64px !important; text-align: center; }
+.mail-preview { white-space: pre-wrap; font-family: inherit; font-size: 13px; background: #f8faf9; border-radius: 8px; padding: 10px; margin: 0; }
