@@ -240,3 +240,14 @@ details.exp-line { background: #f8faf9; border-radius: 8px; padding: 6px 10px; m
 .loading-screen { display: flex; align-items: center; gap: 12px; padding: 40px 8px; }
 .spinner { width: 22px; height: 22px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* メニューの件数バッジ */
+.nav-badge {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px; background: #e53e3e; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; margin-left: 6px;
+  vertical-align: middle; font-style: normal;
+}
+.admin-nav a { display: flex !important; align-items: center; justify-content: space-between; }
+.admin-tabbar .ic, .sheet-grid .ic { position: relative; }
+.admin-tabbar .nav-badge, .sheet-grid .nav-badge { position: absolute; top: -6px; right: -12px; margin: 0; border: 2px solid #16322b; }
+.sheet-grid .nav-badge { border-color: #fff; }

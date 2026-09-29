@@ -10,6 +10,8 @@ export async function api<T = unknown>(url: string, opts: { method?: string; bod
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(res.status, (json as { error?: string }).error ?? `エラーが発生しました (${res.status})`);
+  // 登録・更新・削除のあとはメニューの件数バッジを取り直す
+  if ((opts.method ?? (opts.body || opts.form ? "POST" : "GET")) !== "GET") window.dispatchEvent(new Event("kensa:changed"));
   return json as T;
 }
 
