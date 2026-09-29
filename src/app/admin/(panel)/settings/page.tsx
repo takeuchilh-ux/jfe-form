@@ -27,12 +27,13 @@ export default async function SettingsPage() {
         liffEndpoint={`${origin}/liff`}
       />
       <div className="card" style={{ maxWidth: 640 }}>
-        <h2>メール送信（備品の発注）</h2>
+        <h2>備品の発注メール</h2>
         <p>
-          状態：{mailConfigured() ? <span className="badge ok">設定済</span> : <span className="badge ng">未設定</span>}　送信先：<code>{ORDER_MAIL_TO}</code>
+          送信先：<code>{ORDER_MAIL_TO}</code>
         </p>
         <p className="small muted">
-          Vercel の環境変数 <code>SMTP_USER</code>（送信に使う Gmail アドレス）と <code>SMTP_PASS</code>（その Gmail のアプリパスワード 16 桁）を設定すると送信できます。
+          発注メールは、検査員のスマホのメールアプリ（iPhone は「メール」、Android は既定のアプリ）で下書きが作成され、本人が送信します。サーバー側の設定は不要です。
+          {mailConfigured() && "（サーバーからの送信も設定済みのため、「備品の発注」画面から送信・再送できます）"}
         </p>
       </div>
       <PasswordForm />

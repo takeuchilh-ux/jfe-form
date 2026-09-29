@@ -1,8 +1,10 @@
 import "server-only";
 import nodemailer from "nodemailer";
 
+import { ORDER_MAIL_TO as DEFAULT_TO } from "./order";
+
 /** 発注メールの宛先（固定。環境変数 ORDER_MAIL_TO で変更可） */
-export const ORDER_MAIL_TO = process.env.ORDER_MAIL_TO?.trim() || "takeuchi.nxtb@gmail.com";
+export const ORDER_MAIL_TO = process.env.ORDER_MAIL_TO?.trim() || DEFAULT_TO;
 
 export function mailConfigured() {
   return !!(process.env.SMTP_USER?.trim() && process.env.SMTP_PASS?.trim());
