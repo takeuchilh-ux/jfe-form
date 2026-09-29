@@ -5,7 +5,7 @@ import LiffHeader from "@/components/LiffHeader";
 import { useMe } from "@/components/LiffProvider";
 import { api, errMsg } from "@/lib/client";
 import { todayJst } from "@/lib/format";
-import { ORDER_MAIL_SUBJECT, ORDER_MAIL_TO, ORDER_PRODUCTS, deliveryText, orderMailBody, orderMailtoUrl, type OrderItem } from "@/lib/order";
+import { ORDER_MAIL_SUBJECT, ORDER_MAIL_TO, ORDER_PRODUCTS, deliveryText, itemLine, orderMailBody, orderMailtoUrl, type OrderItem } from "@/lib/order";
 
 type Order = { id: string; company: string; items: OrderItem[]; delivery: string; note: string; mail_status: string; created_at: string };
 
@@ -44,7 +44,7 @@ export default function OrderPage() {
     );
   }
 
-  const items: OrderItem[] = ORDER_PRODUCTS.map((name) => ({ name, qty: qty[name] ?? 0 })).filter((i) => i.qty > 0);
+  const items: OrderItem[] = ORDER_PRODUCTS.map((p) => ({ name: p.name, qty: qty[p.name] ?? 0, unit: p.unit, per: p.per })).filter((i) => i.qty > 0);
   const delivery = deliveryMode === "asap" ? "asap" : date;
   const setN = (name: string, n: number) => setQty({ ...qty, [name]: Math.max(0, Math.min(9999, Math.round(n) || 0)) });
 
@@ -94,8 +94,14 @@ export default function OrderPage() {
           <h3>商品</h3>
           {items.map((i) => (
             <div key={i.name} className="row between" style={{ padding: "4px 0", borderBottom: "1px solid var(--border)" }}>
-              <span>{i.name}</span>
-              <strong>× {i.qty}</strong>
+              <span>
+                {i.name}
+                <span className="muted small">（入数:{i.per}）</span>
+              </span>
+              <strong>
+                × {i.qty}
+                {i.unit}
+              </strong>
             </div>
           ))}
           <p className="mt small">
@@ -166,11 +172,16 @@ export default function OrderPage() {
           <h3 style={{ margin: 0 }}>商品と個数</h3>
           {items.length > 0 && <span className="badge ok">{items.length} 品目</span>}
         </div>
-        {ORDER_PRODUCTS.map((name) => {
+        {ORDER_PRODUCTS.map(({ name, unit, per }) => {
           const n = qty[name] ?? 0;
           return (
             <div key={name} className={`qty-row ${n > 0 ? "on" : ""}`}>
-              <span className="grow">{name}</span>
+              <span className="grow">
+                {name}
+                <span className="qty-meta">
+                  単位：{unit}／入数：{per}
+                </span>
+              </span>
               <button type="button" className="qty-btn" disabled={n === 0} onClick={() => setN(name, n - 1)} aria-label={`${name}を減らす`}>
                 −
               </button>
@@ -186,6 +197,7 @@ export default function OrderPage() {
               <button type="button" className="qty-btn" onClick={() => setN(name, n + 1)} aria-label={`${name}を増やす`}>
                 ＋
               </button>
+              <span className="qty-unit">{unit}</span>
             </div>
           );
         })}
@@ -231,7 +243,7 @@ export default function OrderPage() {
                 <strong>{new Date(o.created_at).toLocaleDateString("ja-JP")}</strong>
                 {o.mail_status === "sent" ? <span className="badge ok">送信済</span> : <span className="badge info">メール作成</span>}
               </div>
-              <div>{o.items.map((i) => `${i.name}×${i.qty}`).join("、")}</div>
+              <div>{o.items.map(itemLine).join("、")}</div>
               <div className="muted">納品希望日：{deliveryText(o.delivery)}</div>
             </div>
           ))}
