@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, errMsg, parseCsv } from "@/lib/client";
+import { api, downloadCsv, errMsg, parseCsv } from "@/lib/client";
 import CsvTools from "@/components/CsvTools";
 import type { Settings } from "@/lib/data";
 import { fmtDate, todayJst } from "@/lib/format";
@@ -96,6 +96,14 @@ export default function TestsClient({
         .map((r) => ({ category: r[0], group_key: r[1], question: r[2], correct: r[3], explanation: r[4] ?? "" }))
     : [];
 
+  /** 登録済みの問題を書き出す。先頭 5 列は一括登録と同じ形式なので、編集してそのまま取り込める */
+  function exportCsv() {
+    downloadCsv(`50問テスト_問題_${todayJst()}.csv`, [
+      ["カテゴリ", "テーマ", "問題文", "正解(○/×)", "解説", "番号", "出題"],
+      ...questions.map((x) => [x.category, x.group_key, x.question, MARK[x.correct_index], x.explanation, x.sort_order, x.active ? "する" : "しない"]),
+    ]);
+  }
+
   return (
     <>
       <div className="row" style={{ marginBottom: 12 }}>
@@ -143,6 +151,9 @@ export default function TestsClient({
           <div className="row between" style={{ marginBottom: 12 }}>
             <input type="text" placeholder="問題文・カテゴリ・テーマで検索" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 320 }} />
             <div className="row">
+              <button className="btn" disabled={!questions.length} onClick={exportCsv}>
+                📥 CSV で書き出し
+              </button>
               <button className="btn" onClick={() => setCsv(csv === null ? "" : null)}>
                 CSV 一括登録
               </button>
