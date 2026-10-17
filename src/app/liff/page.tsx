@@ -35,9 +35,11 @@ export default function LiffHome() {
           </Link>
         ))}
       </div>
-      <Link className="btn block mt" href="/liff/offers">
-        📋 受注可否の回答
-      </Link>
+      {me.kind === "trainee" && (
+        <Link className="btn block mt" href="/liff/offers">
+          🙋 同行の申し込み
+        </Link>
+      )}
     </main>
   );
 }

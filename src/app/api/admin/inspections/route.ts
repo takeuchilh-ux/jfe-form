@@ -2,7 +2,7 @@ import { handle, body, str, int, isDate, isUuid, bad } from "@/lib/api";
 import { requireAdmin } from "@/lib/session";
 import { db, must } from "@/lib/supabase";
 
-type Input = { store_id?: unknown; inspection_date?: unknown; time_slot?: unknown; required_count?: unknown; notes?: unknown };
+type Input = { store_id?: unknown; inspection_date?: unknown; time_slot?: unknown; required_count?: unknown; notes?: unknown; trainee_slots?: unknown };
 
 /** 検査を登録（items 配列で一括登録可） */
 export const POST = handle(async (req: Request) => {
@@ -24,6 +24,7 @@ export const POST = handle(async (req: Request) => {
       time_slot: str(it.time_slot, 50),
       required_count: Math.min(10, Math.max(1, int(it.required_count, 1))),
       notes: str(it.notes, 1000),
+      trainee_slots: Math.min(5, Math.max(0, int(it.trainee_slots, 1))),
     };
   });
   must(await db().from("kensa_inspections").insert(rows).select("id"));

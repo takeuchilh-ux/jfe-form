@@ -24,7 +24,7 @@ export default async function AssignPage({ searchParams }: Props) {
       ) : (
         <AssignClient
           key={month}
-          periodId={period.id}
+          month={month}
           periodStatus={period.status}
           inspections={inspections}
           inspectors={inspectors

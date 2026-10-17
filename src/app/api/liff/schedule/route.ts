@@ -13,13 +13,14 @@ export const GET = handle(async (req: Request) => {
     await db()
       .from("kensa_assignments")
       .select(
-        "inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,notes,store:kensa_stores(name,area,address)," +
+        "role,inspection:kensa_inspections!inner(id,inspection_date,time_slot,status,notes,store:kensa_stores(name,area,address)," +
           "assignments:kensa_assignments(role,inspector:kensa_inspectors(id,name)))",
       )
       .eq("inspector_id", me.id)
       .gte("inspection.inspection_date", start)
       .lt("inspection.inspection_date", end),
   ) as unknown as {
+    role: string;
     inspection: {
       id: string;
       inspection_date: string;
@@ -31,13 +32,14 @@ export const GET = handle(async (req: Request) => {
     };
   }[];
   const items = rows
-    .map(({ inspection: i }) => ({
+    .map(({ role, inspection: i }) => ({
       id: i.id,
       date: i.inspection_date,
       time: i.time_slot,
       status: i.status,
       notes: i.notes,
       store: i.store,
+      role,
       partners: i.assignments
         .filter((a) => a.inspector && a.inspector.id !== me.id)
         .map((a) => `${a.inspector!.name}${a.role === "trainee" ? "（研修）" : ""}`),

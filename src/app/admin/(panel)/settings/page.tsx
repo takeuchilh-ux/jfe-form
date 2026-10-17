@@ -3,6 +3,7 @@ import { getSettings } from "@/lib/data";
 import SettingsClient from "./SettingsClient";
 import PasswordForm from "./PasswordForm";
 import LineCard from "./LineCard";
+import ReminderCard from "./ReminderCard";
 import { mailConfigured, ORDER_MAIL_TO } from "@/lib/mail";
 
 const LINE_ENV = [
@@ -26,6 +27,7 @@ export default async function SettingsPage() {
         webhookUrl={`${origin}/api/line/webhook`}
         liffEndpoint={`${origin}/liff`}
       />
+      <ReminderCard cronReady={!!process.env.CRON_SECRET?.trim()} />
       <div className="card" style={{ maxWidth: 640 }}>
         <h2>備品の発注メール</h2>
         <p>

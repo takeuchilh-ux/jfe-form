@@ -97,7 +97,7 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
   async function remove(i: Inspector) {
     if (
       !confirm(
-        `${i.name} さんを完全に削除します。\n受注可否の回答・アサイン・交通費申請（レシート含む）・テストの申請と結果もすべて削除され、元に戻せません。\n（退職などで残しておきたい場合は「無効にする」を使ってください）\n\n削除しますか？`,
+        `${i.name} さんを完全に削除します。\nアサイン・交通費申請（レシート含む）・テストの申請と結果もすべて削除され、元に戻せません。\n（退職などで残しておきたい場合は「無効にする」を使ってください）\n\n削除しますか？`,
       )
     )
       return;

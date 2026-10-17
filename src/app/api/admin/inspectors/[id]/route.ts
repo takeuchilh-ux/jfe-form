@@ -47,7 +47,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
         buttonMessage({
           altText: "登録が承認されました",
           title: `✅ ${KIND_LABEL[row.kind as keyof typeof KIND_LABEL]}として登録が承認されました`,
-          lines: [`${row.name} さん、ご登録ありがとうございます。`, "下のメニューからご利用ください。スケジュールが公開されると、この LINE でお知らせします。"],
+          lines: [`${row.name} さん、ご登録ありがとうございます。`, "下のメニューからご利用ください。担当の検査は「マイスケジュール」で確認でき、前日にはこの LINE でお知らせします。"],
           label: "メニューを開く",
           uri: liffUrl("/liff"),
         }),

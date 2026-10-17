@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import LiffHeader from "@/components/LiffHeader";
+import { useMe } from "@/components/LiffProvider";
 import { api, errMsg } from "@/lib/client";
 import { fmtDate, fmtMonth } from "@/lib/format";
 
@@ -11,9 +12,11 @@ type Item = {
   time: string;
   notes: string;
   store: { name: string; area: string; address: string } | null;
-  answer: "yes" | "no" | null;
-  comment: string;
-  assigned: boolean;
+  inspectors: string[];
+  trainees: string[];
+  slots: number;
+  joined: boolean;
+  past: boolean;
 };
 type Data = {
   periods: { year_month: string; open: boolean }[];
@@ -21,62 +24,60 @@ type Data = {
   inspections: Item[];
 };
 
+/** 研修生：公開された検査（担当検査員が決まったもの）から、同行する日を選ぶ */
 export default function OffersPage() {
+  const { me } = useMe();
   const [month, setMonth] = useState(() => new URLSearchParams(location.search).get("month") ?? "");
   const [data, setData] = useState<Data | null>(null);
-  const [draft, setDraft] = useState<Record<string, "yes" | "no" | null>>({});
   const [msg, setMsg] = useState<{ type: string; text: string } | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [onlyMine, setOnlyMine] = useState(false);
 
   const load = useCallback(async (m: string) => {
-    setMsg(null);
     try {
-      const d = await api<Data>(`/api/liff/offers${m ? `?month=${m}` : ""}`);
-      setData(d);
-      setDraft({});
+      setData(await api<Data>(`/api/liff/offers${m ? `?month=${m}` : ""}`));
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
     }
   }, []);
 
   useEffect(() => {
-    load(month);
-  }, [load, month]);
+    if (me.kind === "trainee") load(month);
+  }, [load, month, me.kind]);
 
-  const current = (i: Item) => (i.id in draft ? draft[i.id] : i.answer);
-  const changed = useMemo(() => Object.keys(draft).filter((id) => data?.inspections.find((i) => i.id === id)?.answer !== draft[id]), [draft, data]);
+  if (me.kind !== "trainee") {
+    return (
+      <main className="liff">
+        <LiffHeader title="同行の申し込み" />
+        <div className="alert warn">この機能は研修生向けです。担当の検査は「マイスケジュール」で確認できます。</div>
+      </main>
+    );
+  }
 
-  async function save() {
-    setBusy(true);
+  async function toggle(i: Item) {
+    setBusy(i.id);
     setMsg(null);
     try {
-      await api("/api/liff/offers", { body: { answers: changed.map((id) => ({ inspection_id: id, answer: draft[id] })) } });
-      await load(month);
-      setMsg({ type: "success", text: "回答を送信しました。ありがとうございます！" });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      await api("/api/liff/offers", { body: { inspection_id: i.id, join: !i.joined } });
+      setMsg({ type: "success", text: `${fmtDate(i.date)} ${i.store?.name} の同行を${i.joined ? "取り消しました" : "申し込みました"}` });
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
     } finally {
-      setBusy(false);
+      await load(month);
+      setBusy(null);
     }
-  }
-
-  function setAll(answer: "yes" | "no") {
-    if (!data) return;
-    const next: Record<string, "yes" | "no"> = {};
-    for (const i of data.inspections) if (current(i) === null) next[i.id] = answer;
-    setDraft((d) => ({ ...d, ...next }));
   }
 
   if (!data) return <main className="liff">{msg ? <div className={`alert ${msg.type}`}>{msg.text}</div> : <p className="muted">読み込み中…</p>}</main>;
 
   const open = data.period?.open ?? false;
-  const unanswered = data.inspections.filter((i) => current(i) === null).length;
+  const mine = data.inspections.filter((i) => i.joined).length;
+  const list = onlyMine ? data.inspections.filter((i) => i.joined) : data.inspections;
   let lastDate = "";
 
   return (
     <main className="liff">
-      <LiffHeader title="受注可否の回答" />
+      <LiffHeader title="同行の申し込み" />
       {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
       {data.periods.length > 1 && (
         <div className="seg" style={{ marginBottom: 12 }}>
@@ -88,69 +89,69 @@ export default function OffersPage() {
         </div>
       )}
       {!data.period ? (
-        <div className="card muted">現在、回答受付中のスケジュールはありません。</div>
+        <div className="card muted">現在、公開中のスケジュールはありません。</div>
       ) : (
         <>
           <div className="card">
             <strong>{fmtMonth(data.period.year_month)}</strong>
-            {data.period.deadline && <span className="muted">　回答期限 {fmtDate(data.period.deadline)}</span>}
-            <div className="mt">
+            {data.period.deadline && <span className="muted">　申込締切 {fmtDate(data.period.deadline)}</span>}
+            <div className="mt small">
               {open ? (
-                <span className="muted">
-                  対応できる検査は「可」、難しい検査は「不可」を選んで送信してください。未回答 <strong>{unanswered}</strong> 件
-                </span>
+                <span className="muted">同行したい検査の「同行する」を押してください。前日まで取り消せます。</span>
               ) : (
-                <span className="badge warn">回答受付は終了しました</span>
+                <span className="badge warn">申し込みの受付は終了しました</span>
               )}
             </div>
-            {open && unanswered > 0 && (
-              <div className="row mt">
-                <button className="btn sm" onClick={() => setAll("no")}>
-                  未回答をすべて「不可」
-                </button>
-              </div>
-            )}
+            <div className="row between mt">
+              <span>
+                同行予定 <strong>{mine}</strong> 件
+              </span>
+              <label className="row small">
+                <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} /> 申し込んだものだけ表示
+              </label>
+            </div>
           </div>
 
-          {data.inspections.map((i) => {
+          {list.length === 0 && <div className="card muted">表示する検査はありません。</div>}
+          {list.map((i) => {
             const head = i.date !== lastDate ? fmtDate(i.date) : null;
             lastDate = i.date;
-            const a = current(i);
+            const full = !i.joined && i.trainees.length >= i.slots;
+            const closed = !open || i.past;
             return (
               <div key={i.id}>
                 {head && <div className="day-head">{head}</div>}
-                <div className="card" style={{ borderLeft: i.id in draft && i.answer !== draft[i.id] ? "4px solid var(--warn)" : undefined }}>
-                  <div className="row between" style={{ alignItems: "flex-start" }}>
+                <div className="card" style={{ borderLeft: i.joined ? "4px solid var(--primary)" : undefined, opacity: i.past ? 0.6 : 1 }}>
+                  <div className="row between" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
                     <div className="grow">
                       <strong>{i.store?.name}</strong>
-                      {i.assigned && <span className="badge ok"> 担当確定</span>}
                       <div className="muted small">
                         {i.time && `${i.time}　`}
                         {i.store?.area}
                       </div>
-                      {i.notes && <div className="small">{i.notes}</div>}
+                      <div className="small">担当：{i.inspectors.join("、") || "未定"}</div>
+                      {i.trainees.length > 0 && <div className="small muted">同行：{i.trainees.join("、")}</div>}
+                      {i.notes && <div className="small muted">{i.notes}</div>}
                     </div>
-                    <div className="seg">
-                      <button className={a === "yes" ? "on-yes" : ""} disabled={!open} onClick={() => setDraft((d) => ({ ...d, [i.id]: a === "yes" ? null : "yes" }))}>
-                        可
+                    {i.slots <= 0 && !i.joined ? (
+                      <span className="badge">同行不可</span>
+                    ) : full ? (
+                      <span className="badge">満員</span>
+                    ) : (
+                      <button
+                        className={`btn sm ${i.joined ? "" : "primary"}`}
+                        style={{ whiteSpace: "nowrap" }}
+                        disabled={closed || busy !== null}
+                        onClick={() => toggle(i)}
+                      >
+                        {busy === i.id ? "…" : i.joined ? "✓ 同行予定（取消）" : "同行する"}
                       </button>
-                      <button className={a === "no" ? "on-no" : ""} disabled={!open} onClick={() => setDraft((d) => ({ ...d, [i.id]: a === "no" ? null : "no" }))}>
-                        不可
-                      </button>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
-
-          {open && (
-            <div className="sticky-foot">
-              <button className="btn primary block lg" disabled={busy || changed.length === 0} onClick={save}>
-                {busy ? "送信中…" : changed.length ? `回答を送信（${changed.length} 件）` : "変更はありません"}
-              </button>
-            </div>
-          )}
         </>
       )}
     </main>

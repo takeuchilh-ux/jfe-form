@@ -14,12 +14,12 @@ type Props = {
   inspections: InspectionRow[];
   stores: Store[];
   inspectorNames: Record<string, string>;
-  linkedCount: number;
+  traineeCount: number;
 };
 
-type Draft = { store_id: string; inspection_date: string; time_slot: string; required_count: number; notes: string };
+type Draft = { store_id: string; inspection_date: string; time_slot: string; required_count: number; trainee_slots: number; notes: string };
 
-export default function SchedulesClient({ month, period, inspections, stores, inspectorNames, linkedCount }: Props) {
+export default function SchedulesClient({ month, period, inspections, stores, inspectorNames, traineeCount }: Props) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ type: "error" | "success" | "warn"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -54,18 +54,19 @@ export default function SchedulesClient({ month, period, inspections, stores, in
 
   const active = inspections.filter((i) => i.status !== "cancelled");
 
+  const changed = inspections.filter((i) => !i.change_seen);
+
   async function release() {
-    const again = period!.status !== "draft";
-    const ok = confirm(
-      `${fmtMonth(month)}のスケジュール（${active.length} 件）を、承認済みの検査員 ${linkedCount} 名へ LINE で${again ? "再" : ""}通知します。よろしいですか？`,
-    );
-    if (!ok) return;
+    if (period!.status === "draft" && !confirm(`${fmtMonth(month)}のスケジュール（${active.length} 件）を研修生に公開し、同行の申し込みを受け付けます。よろしいですか？`)) return;
+    const notify = confirm(`研修生 ${traineeCount} 名に LINE で「同行の申し込み受付中」とお知らせしますか？\n（キャンセルを押すと、お知らせせずに公開します）`);
     await run(async () => {
-      const r = await api<{ sent: number; lineError: string | null }>(`/api/admin/periods/${period!.id}/release`, { method: "POST" });
-      if (r.lineError) throw new Error(`リリースしましたが LINE 送信に失敗しました：${r.lineError}`);
-      return `リリースしました（LINE 送信 ${r.sent} 名）`;
+      const r = await api<{ sent: number; lineError: string | null }>(`/api/admin/periods/${period!.id}/release`, { body: { notify } });
+      if (r.lineError) throw new Error(`公開しましたが LINE 送信に失敗しました：${r.lineError}`);
+      return notify ? `研修生に公開しました（LINE 送信 ${r.sent} 名）` : "研修生に公開しました";
     });
   }
+
+  const seen = (id: string) => run(async () => void (await api(`/api/admin/inspections/${id}`, { method: "PATCH", body: { change_seen: true } })));
 
   return (
     <>
@@ -78,13 +79,13 @@ export default function SchedulesClient({ month, period, inspections, stores, in
               {PERIOD_STATUS[period.status]}
             </span>
             <span className="muted">
-              検査 {active.length} 件{period.released_at && ` ／ 最終リリース ${new Date(period.released_at).toLocaleString("ja-JP")}`}
+              検査 {active.length} 件{period.released_at && ` ／ 公開 ${new Date(period.released_at).toLocaleString("ja-JP")}`}
             </span>
           </div>
           <div className="row">
             <DeadlineEditor period={period} busy={busy} run={run} />
             <button className="btn primary" disabled={busy || !active.length} onClick={release}>
-              📣 {period.status === "draft" ? "検査員へリリース" : "再通知"}
+              🙋 {period.status === "draft" ? "研修生に公開" : "研修生へ再度お知らせ"}
             </button>
             {period.status === "released" && (
               <button
@@ -92,7 +93,7 @@ export default function SchedulesClient({ month, period, inspections, stores, in
                 disabled={busy}
                 onClick={() => run(async () => void (await api(`/api/admin/periods/${period.id}`, { method: "PATCH", body: { status: "closed" } })))}
               >
-                回答を締め切る
+                同行の受付を締め切る
               </button>
             )}
             {period.status === "closed" && (
@@ -101,7 +102,7 @@ export default function SchedulesClient({ month, period, inspections, stores, in
                 disabled={busy}
                 onClick={() => run(async () => void (await api(`/api/admin/periods/${period.id}`, { method: "PATCH", body: { status: "released" } })))}
               >
-                回答を再開
+                同行の受付を再開
               </button>
             )}
             <Link className="btn" href={`/admin/assign?month=${month}`}>
@@ -115,18 +116,18 @@ export default function SchedulesClient({ month, period, inspections, stores, in
               className="btn sm"
               disabled={busy}
               onClick={() =>
-                confirm("下書き（未リリース）の状態に戻しますか？（検査員の回答・アサインはそのまま残ります）") &&
+                confirm("研修生に非公開の状態に戻しますか？（申し込み済みの同行・アサインはそのまま残ります）") &&
                 run(async () => void (await api(`/api/admin/periods/${period.id}`, { method: "PATCH", body: { status: "draft" } })))
               }
             >
-              下書きに戻す
+              非公開に戻す
             </button>
           )}
           <button
             className="btn sm danger"
             disabled={busy}
             onClick={() =>
-              confirm(`${fmtMonth(month)}のスケジュールを丸ごと削除します。\n検査 ${inspections.length} 件と、その受注可否の回答・アサインもすべて削除されます。\n\n削除しますか？`) &&
+              confirm(`${fmtMonth(month)}のスケジュールを丸ごと削除します。\n検査 ${inspections.length} 件と、そのアサイン（同行を含む）もすべて削除されます。\n\n削除しますか？`) &&
               run(async () => {
                 await api(`/api/admin/periods/${period.id}`, { method: "DELETE" });
                 return `${fmtMonth(month)}のスケジュールを削除しました`;
@@ -138,11 +139,17 @@ export default function SchedulesClient({ month, period, inspections, stores, in
         </div>
       </div>
 
+      {changed.length > 0 && (
+        <div className="alert warn">
+          検査員が日時を変更した検査が {changed.length} 件あります（一覧の「⚠ 変更あり」）。内容を確認したら「確認済み」を押してください。
+        </div>
+      )}
+
       <div className="card">
         <div className="row between">
           <h2 style={{ margin: 0 }}>検査を追加</h2>
           <button className="btn sm" onClick={() => setShowBulk((v) => !v)}>
-            {showBulk ? "1 件ずつ登録" : "CSV で一括登録"}
+            {showBulk ? "1 件ずつ登録" : "JFE の予定表を取り込む（CSV）"}
           </button>
         </div>
         <div className="mt">
@@ -168,9 +175,8 @@ export default function SchedulesClient({ month, period, inspections, stores, in
               <th>時間</th>
               <th>店舗</th>
               <th>エリア</th>
-              <th className="right">人数</th>
-              <th>回答（可/不可）</th>
               <th>担当</th>
+              <th>同行（研修生）</th>
               <th></th>
             </tr>
           </thead>
@@ -183,10 +189,14 @@ export default function SchedulesClient({ month, period, inspections, stores, in
               </tr>
             )}
             {inspections.map((i) => {
-              const yes = i.availabilities.filter((a) => a.answer === "yes").length;
-              const no = i.availabilities.length - yes;
+              const names = (role: "main" | "trainee") =>
+                i.assignments
+                  .filter((a) => (a.role === "trainee") === (role === "trainee"))
+                  .map((a) => inspectorNames[a.inspector_id] ?? "?")
+                  .join("、");
+              const trainees = i.assignments.filter((a) => a.role === "trainee").length;
               return (
-                <tr key={i.id} className={i.status === "cancelled" ? "dim" : ""}>
+                <tr key={i.id} className={i.status === "cancelled" ? "dim" : ""} style={i.change_seen ? undefined : { background: "var(--warn-bg, #fff7e0)" }}>
                   <td className="nowrap">{fmtDate(i.inspection_date)}</td>
                   <td className="nowrap">{i.time_slot}</td>
                   <td>
@@ -194,18 +204,27 @@ export default function SchedulesClient({ month, period, inspections, stores, in
                     {i.status === "cancelled" && <span className="badge ng"> 中止</span>}
                     {i.status === "completed" && <span className="badge ok"> 完了</span>}
                     {i.notes && <div className="muted small">{i.notes}</div>}
-                  </td>
-                  <td className="nowrap">{i.store?.area}</td>
-                  <td className="right">{i.required_count}</td>
-                  <td className="nowrap">
-                    <span className="badge ok">{yes}</span> / <span className="badge">{no}</span>
-                  </td>
-                  <td>
-                    {i.assignments.map((a) => `${inspectorNames[a.inspector_id] ?? "?"}${a.role === "trainee" ? "（同行）" : ""}`).join("、") || (
-                      <span className="muted">未定</span>
+                    {i.change_note && (
+                      <div className="small" style={{ whiteSpace: "pre-line", color: i.change_seen ? "var(--muted)" : "var(--warn, #b26b00)" }}>
+                        {!i.change_seen && <strong>⚠ 変更あり　</strong>}
+                        {i.change_note}
+                      </div>
                     )}
                   </td>
+                  <td className="nowrap">{i.store?.area}</td>
+                  <td>{names("main") || <span className="muted">未定</span>}</td>
+                  <td className="small">
+                    {names("trainee")}
+                    <span className="muted">
+                      {i.trainee_slots === 0 ? "同行不可" : `（${trainees}/${i.trainee_slots}）`}
+                    </span>
+                  </td>
                   <td className="nowrap">
+                    {!i.change_seen && (
+                      <button className="btn sm primary" style={{ marginRight: 4 }} disabled={busy} onClick={() => seen(i.id)}>
+                        確認済み
+                      </button>
+                    )}
                     <button className="btn sm" onClick={() => setEditing(i)}>
                       編集
                     </button>
@@ -257,7 +276,7 @@ export default function SchedulesClient({ month, period, inspections, stores, in
                 className="btn sm danger"
                 disabled={busy}
                 onClick={() => {
-                  if (!confirm("この検査を削除します。回答・アサインも削除されます。よろしいですか？")) return;
+                  if (!confirm("この検査を削除します。アサイン（同行を含む）も削除されます。よろしいですか？")) return;
                   run(async () => {
                     await api(`/api/admin/inspections/${editing.id}`, { method: "DELETE" });
                     setEditing(null);
@@ -282,7 +301,7 @@ function DeadlineEditor({ period, busy, run }: { period: Period; busy: boolean; 
   const changed = value !== (period.response_deadline ?? "");
   return (
     <div className="row">
-      <span className="muted">回答期限</span>
+      <span className="muted">同行の申込締切</span>
       <input type="date" className="inline" value={value} onChange={(e) => setValue(e.target.value)} />
       {changed && (
         <button
@@ -336,6 +355,7 @@ function InspectionForm(props: {
     inspection_date: init?.inspection_date ?? `${props.month}-01`,
     time_slot: init?.time_slot ?? "",
     required_count: init?.required_count ?? 1,
+    trainee_slots: init?.trainee_slots ?? 1,
     notes: init?.notes ?? "",
   });
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
@@ -369,9 +389,16 @@ function InspectionForm(props: {
           <span>時間帯</span>
           <input type="text" placeholder="例: 10:00〜" value={d.time_slot} onChange={(e) => set("time_slot", e.target.value)} />
         </label>
-        <label className="field" style={{ width: 80 }}>
-          <span>人数</span>
-          <input type="number" min={1} max={10} value={d.required_count} onChange={(e) => set("required_count", Number(e.target.value))} />
+        <label className="field" style={{ width: 120 }}>
+          <span>同行枠（研修生）</span>
+          <select value={d.trainee_slots} onChange={(e) => set("trainee_slots", Number(e.target.value))}>
+            <option value={0}>同行不可</option>
+            {[1, 2, 3].map((n) => (
+              <option key={n} value={n}>
+                {n} 名
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <label className="field">
@@ -385,42 +412,80 @@ function InspectionForm(props: {
   );
 }
 
-function BulkAdd({ month, periodId, stores, busy, run }: { month: string; periodId: string; stores: Store[]; busy: boolean; run: (fn: () => Promise<string | void>) => void }) {
+/** 見出しの名前から列を探す（JFE の予定表の列の並びが変わっても取り込めるように） */
+const COLS = {
+  store: ["店舗", "店舗名"],
+  date: ["訪問日", "日付", "検査日"],
+  time: ["時間", "時間帯", "開始"],
+  main: ["担当", "検査員"],
+  trainee: ["研修生", "同行"],
+  address: ["住所"],
+  group: ["グループ名", "運営会社", "会社"],
+  notes: ["備考", "メモ"],
+} as const;
+
+function BulkAdd({ month, periodId, busy, run }: { month: string; periodId: string; stores: Store[]; busy: boolean; run: (fn: () => Promise<string | void>) => void }) {
   const [text, setText] = useState("");
-  const byName = useMemo(() => new Map(stores.map((s) => [s.name.replace(/\s/g, ""), s.id])), [stores]);
   const parsed = useMemo(() => {
-    const rows = parseCsv(text).filter((r) => !/^日付/.test(r[0] ?? ""));
-    return rows.map((r) => {
-      const date = normalizeDate(r[0] ?? "", month);
-      const storeId = byName.get((r[1] ?? "").replace(/\s/g, ""));
-      const error = !date ? "日付が不正" : !date.startsWith(month) ? "対象月外" : !storeId ? "店舗名が未登録" : "";
-      return { raw: r, error, item: { inspection_date: date, store_id: storeId, time_slot: r[2] ?? "", required_count: Number(r[3]) || 1, notes: r[4] ?? "" } };
-    });
-  }, [text, byName, month]);
-  const errors = parsed.filter((p) => p.error);
+    const all = parseCsv(text).filter((r) => r.some((c) => c.trim()));
+    const hi = all.findIndex((r) => r.some((c) => COLS.date.includes(c.trim() as never)) && r.some((c) => COLS.store.includes(c.trim() as never)));
+    if (hi < 0) return { error: all.length ? "見出し行（店舗・訪問日 など）が見つかりません。1 行目に見出しを入れてください" : "", rows: [] };
+    const header = all[hi].map((c) => c.trim());
+    const col = (k: keyof typeof COLS) => header.findIndex((h) => (COLS[k] as readonly string[]).includes(h));
+    const idx = Object.fromEntries((Object.keys(COLS) as (keyof typeof COLS)[]).map((k) => [k, col(k)])) as Record<keyof typeof COLS, number>;
+    const get = (r: string[], k: keyof typeof COLS) => (idx[k] >= 0 ? (r[idx[k]] ?? "").trim() : "");
+    const rows = all
+      .slice(hi + 1)
+      .filter((r) => get(r, "store") || get(r, "date"))
+      .map((r) => {
+        const date = normalizeDate(get(r, "date"), month);
+        const error = !get(r, "store") ? "店舗名がない" : !date ? "日付が不正" : !date.startsWith(month) ? "対象月外" : "";
+        // JFE の表の「同行不可」はどの列にあっても同行枠 0 とみなす
+        const noTrainee = r.some((c) => c.trim() === "同行不可");
+        return {
+          raw: r,
+          error,
+          item: {
+            date,
+            time: get(r, "time") && !/〜$/.test(get(r, "time")) ? `${get(r, "time")}〜` : get(r, "time"),
+            store: get(r, "store"),
+            address: get(r, "address"),
+            group: get(r, "group"),
+            main: get(r, "main"),
+            trainee: get(r, "trainee"),
+            notes: idx.notes >= 0 && !/^同行(可能|不可)$/.test(get(r, "notes")) ? get(r, "notes") : "",
+            trainee_slots: noTrainee ? 0 : "",
+          },
+        };
+      });
+    return { error: "", rows };
+  }, [text, month]);
+  const errors = parsed.rows.filter((p) => p.error);
   return (
     <>
       <p className="muted">
-        1 行 1 検査で「日付,店舗名,時間帯,人数,備考」の順に貼り付けてください（Excel からのコピーも可）。店舗名は店舗マスタと完全一致が必要です。
+        JFE から届いた予定表（店舗・訪問日・時間・担当・研修生・住所）を、見出し行ごと貼り付けるか CSV ファイルを選んでください。列の順番は問いません。
       </p>
+      <ul className="small muted" style={{ marginTop: 0 }}>
+        <li>担当・研修生は名前（名字だけでも可）で検査員に自動でアサインします。登録されていない名前は取り込まれません</li>
+        <li>未登録の店舗は、住所・グループ名つきで自動登録します</li>
+        <li>同じ店舗・同じ日の検査が既にあれば、時間を更新し、足りない担当だけ追加します</li>
+        <li>「同行不可」と書かれた行は研修生が申し込めません</li>
+      </ul>
       <CsvTools
         filename={`検査スケジュール_${month}.csv`}
         template={[
-          ["日付", "店舗名", "時間帯", "人数", "備考"],
-          [`${month}-05`, stores[0]?.name ?? "店舗名", "10:00〜", 1, ""],
-          [`${month}-06`, stores[1]?.name ?? stores[0]?.name ?? "店舗名", "14:00〜", 2, "研修同行あり"],
+          ["店舗", "訪問日", "時間", "担当", "研修生", "住所", "グループ名", "備考"],
+          ["〇〇食堂 横浜駅前店", `${month}-05`, "10:00", "児林", "", "神奈川県横浜市西区〇〇1-2-3", "株式会社〇〇", ""],
+          ["△△ラーメン 川崎店", `${month}-06`, "14:00", "吉田", "", "神奈川県川崎市川崎区〇〇2-3-4", "", "同行不可"],
         ]}
         onLoad={setText}
       />
-      <textarea
-        rows={8}
-        value={text}
-        placeholder={`${month}-05,博多劇場 川﨑店,10:00〜,1,\n${month}-06,じねんじょ庵 青葉台店,14:00〜,2,研修同行あり`}
-        onChange={(e) => setText(e.target.value)}
-      />
-      {parsed.length > 0 && (
+      <textarea rows={8} value={text} placeholder={"店舗,訪問日,時間,担当,研修生,住所\n七宝麻辣湯綱島店,2026年10月6日,10:00,児林,,神奈川県横浜市港北区…"} onChange={(e) => setText(e.target.value)} />
+      {parsed.error && <p className="small" style={{ color: "var(--danger)" }}>{parsed.error}</p>}
+      {parsed.rows.length > 0 && (
         <p className="mt">
-          {parsed.length} 行を認識{errors.length > 0 && <span style={{ color: "var(--danger)" }}>（エラー {errors.length} 行）</span>}
+          {parsed.rows.length} 行を認識{errors.length > 0 && <span style={{ color: "var(--danger)" }}>（エラー {errors.length} 行）</span>}
         </p>
       )}
       {errors.slice(0, 10).map((e, i) => (
@@ -430,16 +495,21 @@ function BulkAdd({ month, periodId, stores, busy, run }: { month: string; period
       ))}
       <button
         className="btn primary mt"
-        disabled={busy || !parsed.length || errors.length > 0}
+        disabled={busy || !parsed.rows.length || errors.length > 0}
         onClick={() =>
           run(async () => {
-            const r = await api<{ count: number }>("/api/admin/inspections", { body: { period_id: periodId, items: parsed.map((p) => p.item) } });
+            const r = await api<{ added: number; updated: number; assigned: number; newStores: string[]; unknownNames: string[] }>("/api/admin/inspections/import", {
+              body: { period_id: periodId, rows: parsed.rows.map((p) => p.item) },
+            });
             setText("");
-            return `${r.count} 件登録しました`;
+            const parts = [`新規 ${r.added} 件・更新 ${r.updated} 件を取り込み、${r.assigned} 名をアサインしました`];
+            if (r.newStores.length) parts.push(`店舗を追加：${r.newStores.join("、")}`);
+            if (r.unknownNames.length) parts.push(`未登録のためアサインしなかった名前：${r.unknownNames.join("、")}`);
+            return parts.join("／");
           })
         }
       >
-        一括登録
+        取り込む
       </button>
     </>
   );

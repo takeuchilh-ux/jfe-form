@@ -19,12 +19,21 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   }
   if ("time_slot" in b) patch.time_slot = str(b.time_slot, 50);
   if ("notes" in b) patch.notes = str(b.notes, 1000);
+  if ("trainee_slots" in b) patch.trainee_slots = Math.min(5, Math.max(0, int(b.trainee_slots, 1)));
+  // 検査員による日時変更を確認済みにする
+  if (b.change_seen === true) patch.change_seen = true;
   if ("required_count" in b) patch.required_count = Math.min(10, Math.max(1, int(b.required_count, 1)));
   if ("status" in b) {
     if (!["open", "completed", "cancelled"].includes(String(b.status))) bad("状態が不正です");
     patch.status = b.status;
   }
-  return must(await db().from("kensa_inspections").update(patch).eq("id", id).select().single());
+  const cur = must(await db().from("kensa_inspections").select("inspection_date,time_slot").eq("id", id).single());
+  const row = must(await db().from("kensa_inspections").update(patch).eq("id", id).select().single());
+  // 日時が変わったら、新しい日付の前日に改めてリマインドする
+  if (row.inspection_date !== cur.inspection_date || row.time_slot !== cur.time_slot) {
+    must(await db().from("kensa_assignments").update({ reminded_at: null }).eq("inspection_id", id).select("id"));
+  }
+  return row;
 });
 
 export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
