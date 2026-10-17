@@ -14,21 +14,22 @@ export const GET = handle(async () => {
     return r.count ?? 0;
   };
   const month = thisMonthJst();
-  const [expenses, tests, inspectors, inspections] = await Promise.all([
+  const [expenses, tests, inspectors, schedules, inspections] = await Promise.all([
     count(db().from("kensa_expenses").select("id", { count: "exact", head: true }).eq("status", "submitted")),
     count(db().from("kensa_test_requests").select("id", { count: "exact", head: true }).eq("status", "pending")),
     count(db().from("kensa_inspectors").select("id", { count: "exact", head: true }).eq("active", true).is("approved_at", null)),
-    // リリース済み（今月・来月）の、今日以降の検査と担当者
+    // 検査員が日時を変更し、管理者が未確認の検査
+    count(db().from("kensa_inspections").select("id", { count: "exact", head: true }).eq("change_seen", false)),
+    // 今月・来月の、今日以降の検査と担当者
     db()
       .from("kensa_inspections")
-      .select("required_count,assignments:kensa_assignments(role),period:kensa_periods!inner(year_month,status)")
+      .select("required_count,assignments:kensa_assignments(role),period:kensa_periods!inner(year_month)")
       .neq("status", "cancelled")
       .gte("inspection_date", todayJst())
-      .in("period.year_month", [month, shiftMonth(month, 1)])
-      .in("period.status", ["released", "closed"]),
+      .in("period.year_month", [month, shiftMonth(month, 1)]),
   ]);
   const unassigned = (must(inspections) as unknown as { required_count: number; assignments: { role: string }[] }[]).filter(
     (i) => i.assignments.filter((a) => a.role !== "trainee").length < i.required_count,
   ).length;
-  return { expenses, tests, inspectors, assign: unassigned };
+  return { expenses, tests, inspectors, schedules, assign: unassigned };
 });

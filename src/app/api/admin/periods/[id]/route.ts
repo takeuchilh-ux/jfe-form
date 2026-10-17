@@ -4,7 +4,7 @@ import { db, must } from "@/lib/supabase";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** 回答期限の変更、回答締切（closed）／再開（released） */
+/** 同行の申込締切の変更、受付終了（closed）／再開（released）／非公開（draft） */
 export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   await requireAdmin();
   const { id } = await params;
@@ -20,7 +20,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   return must(await db().from("kensa_periods").update(patch).eq("id", id).select().single());
 });
 
-/** 月のスケジュールを丸ごと削除（検査・受注可否の回答・アサインも削除。交通費申請は残り、店舗の紐づけだけ外れる） */
+/** 月のスケジュールを丸ごと削除（検査・アサインも削除。交通費申請は残り、店舗の紐づけだけ外れる） */
 export const DELETE = handle(async (_req: Request, { params }: Ctx) => {
   await requireAdmin();
   const { id } = await params;

@@ -48,7 +48,7 @@ export const EXPENSE_STATUS: Record<string, string> = {
 export const KIND_LABEL = { inspector: "検査員", trainee: "研修生" } as const;
 
 export const PERIOD_STATUS: Record<string, string> = {
-  draft: "下書き",
-  released: "リリース中",
-  closed: "回答締切",
+  draft: "研修生に非公開",
+  released: "研修生に公開中",
+  closed: "同行の受付終了",
 };

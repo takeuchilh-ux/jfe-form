@@ -63,17 +63,23 @@ export type InspectionRow = {
   required_count: number;
   status: "open" | "completed" | "cancelled";
   notes: string;
+  /** 研修生の同行枠（0＝同行不可） */
+  trainee_slots: number;
+  /** 検査員による日時変更の履歴と、管理者が確認済みか */
+  change_note: string;
+  changed_at: string | null;
+  change_seen: boolean;
   store: { id: string; name: string; group_name: string; area: string; address: string } | null;
   availabilities: { inspector_id: string; answer: "yes" | "no"; comment: string }[];
   /** role: main＝担当検査員（必要人数に数える）、trainee＝同行（研修） */
-  assignments: { inspector_id: string; notified_at: string | null; role: "main" | "trainee" }[];
+  assignments: { inspector_id: string; reminded_at: string | null; role: "main" | "trainee" }[];
 };
 
 export const INSPECTION_SELECT =
-  "id,period_id,store_id,inspection_date,time_slot,required_count,status,notes," +
+  "id,period_id,store_id,inspection_date,time_slot,required_count,status,notes,trainee_slots,change_note,changed_at,change_seen," +
   "store:kensa_stores(id,name,group_name,area,address)," +
   "availabilities:kensa_availabilities(inspector_id,answer,comment)," +
-  "assignments:kensa_assignments(inspector_id,notified_at,role)";
+  "assignments:kensa_assignments(inspector_id,reminded_at,role)";
 
 /** 必要人数に数える担当者（同行の研修生を除く） */
 export function mainAssignees(i: Pick<InspectionRow, "assignments">) {

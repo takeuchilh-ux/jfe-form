@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 
-type BadgeKey = "expenses" | "tests" | "inspectors" | "assign";
+type BadgeKey = "expenses" | "tests" | "inspectors" | "schedules" | "assign";
 type Badges = Record<BadgeKey, number>;
 type Item = { href: string; label: string; short: string; icon: string; badge?: BadgeKey };
 
@@ -14,7 +14,7 @@ const REFRESH_MS = 30_000;
 
 const LINKS: Item[] = [
   { href: "/admin", label: "ダッシュボード", short: "ホーム", icon: "🏠" },
-  { href: "/admin/schedules", label: "検査スケジュール", short: "予定", icon: "🗓" },
+  { href: "/admin/schedules", label: "検査スケジュール", short: "予定", icon: "🗓", badge: "schedules" },
   { href: "/admin/assign", label: "アサイン", short: "アサイン", icon: "👥", badge: "assign" },
   { href: "/admin/expenses", label: "交通費", short: "交通費", icon: "🚗", badge: "expenses" },
   { href: "/admin/tests", label: "50問テスト", short: "テスト", icon: "📝", badge: "tests" },
@@ -79,7 +79,7 @@ export default function AdminNav({ name }: { name: string }) {
     return () => window.removeEventListener("kensa:changed", onChanged);
   }, [tick]);
 
-  const total = badges ? badges.expenses + badges.tests + badges.inspectors : 0;
+  const total = badges ? badges.expenses + badges.tests + badges.inspectors + badges.schedules : 0;
   useEffect(() => {
     document.title = total ? `(${total}) 衛生検査管理` : "衛生検査管理";
     const nav = navigator as Navigator & { setAppBadge?: (n: number) => Promise<void>; clearAppBadge?: () => Promise<void> };

@@ -14,7 +14,8 @@ export default async function Dashboard() {
         period: p,
         total: list.length,
         unassigned: list.filter((i) => mainAssignees(i).length < i.required_count).length,
-        unnotified: list.reduce((n, i) => n + i.assignments.filter((a) => !a.notified_at).length, 0),
+        trainees: list.reduce((n, i) => n + i.assignments.filter((a) => a.role === "trainee").length, 0),
+        changed: list.filter((i) => !i.change_seen).length,
       };
     }),
   );
@@ -67,7 +68,10 @@ export default async function Dashboard() {
               担当未確定 <strong style={{ color: s.unassigned ? "var(--danger)" : undefined }}>{s.unassigned}</strong>
             </div>
             <div>
-              未通知のアサイン <strong style={{ color: s.unnotified ? "var(--warn)" : undefined }}>{s.unnotified}</strong>
+              研修生の同行 <strong>{s.trainees}</strong>
+            </div>
+            <div>
+              検査員による日時変更（未確認） <strong style={{ color: s.changed ? "var(--warn)" : undefined }}>{s.changed}</strong>
             </div>
           </div>
         </div>
