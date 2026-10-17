@@ -2,13 +2,15 @@ import { handle, isMonth, bad } from "@/lib/api";
 import { requireAdmin } from "@/lib/session";
 import { db, must } from "@/lib/supabase";
 import { EXPENSE_STATUS, monthRange } from "@/lib/format";
-import type { TrainLeg } from "@/lib/expense";
+import { roadLabel, type TrainLeg } from "@/lib/expense";
 
 type Row = {
   use_date: string;
   transport: string;
   distance_km: number | null;
   route_stops: string[];
+  use_highway: boolean;
+  use_toll: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -32,12 +34,12 @@ export const GET = handle(async (req: Request) => {
   const rows = must(
     await db()
       .from("kensa_expenses")
-      .select("use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),links:kensa_expense_inspections(inspection:kensa_inspections(store:kensa_stores(name)))")
+      .select("use_date,transport,distance_km,route_stops,use_highway,use_toll,parking_fee,train_legs,amount,note,status,inspector:kensa_inspectors(name),links:kensa_expense_inspections(inspection:kensa_inspections(store:kensa_stores(name)))")
       .gte("use_date", start)
       .lt("use_date", end)
       .order("use_date"),
   ) as unknown as Row[];
-  const header = ["利用日", "検査員", "店舗", "交通手段", "距離(km)", "経路", "駐車場代", "電車区間", "金額(電車運賃/駐車場代)", "状態", "備考"];
+  const header = ["利用日", "検査員", "店舗", "交通手段", "距離(km)", "経路", "高速・有料道路", "駐車場代", "電車区間", "金額(電車運賃/駐車場代)", "状態", "備考"];
   const lines = rows.map((r) =>
     [
       r.use_date,
@@ -46,6 +48,7 @@ export const GET = handle(async (req: Request) => {
       r.transport === "car" ? "車" : "電車",
       r.distance_km ?? "",
       r.transport === "car" ? r.route_stops.join("→") : "",
+      r.transport === "car" ? roadLabel(r) || "なし" : "",
       r.transport === "car" ? r.parking_fee : "",
       (r.train_legs ?? []).map((l) => `${l.from}→${l.to} ${l.fare}円${l.round_trip ? "(往復)" : ""}`).join(" / "),
       r.amount,

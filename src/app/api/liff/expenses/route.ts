@@ -18,7 +18,7 @@ const EXT: Record<string, string> = {
 };
 
 const EXPENSE_SELECT =
-  "id,use_date,transport,distance_km,route_stops,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,created_at," +
+  "id,use_date,transport,distance_km,route_stops,use_highway,use_toll,parking_fee,train_legs,amount,note,status,admin_comment,receipt_paths,created_at," +
   "links:kensa_expense_inspections(inspection_id,inspection:kensa_inspections(time_slot,store:kensa_stores(name)))";
 
 type ExpenseDb = { receipt_paths: string[]; links: { inspection_id: string }[] } & Record<string, unknown>;
@@ -108,6 +108,8 @@ export const POST = handle(async (req: Request) => {
     Object.assign(row, {
       distance_km: Math.round(distance * 10) / 10,
       route_stops: parseStops(form.get("route_stops")),
+      use_highway: form.get("use_highway") === "1",
+      use_toll: form.get("use_toll") === "1",
       parking_fee: parking,
       amount: parking,
     });

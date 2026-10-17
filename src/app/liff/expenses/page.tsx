@@ -5,7 +5,7 @@ import LiffHeader from "@/components/LiffHeader";
 import { useMe } from "@/components/LiffProvider";
 import { api, errMsg, shrinkImage } from "@/lib/client";
 import { EXPENSE_STATUS, fmtDate, fmtMonth, shiftMonth, thisMonthJst, todayJst, yen } from "@/lib/format";
-import { mapsDirUrl, trainTotal, type TrainLeg } from "@/lib/expense";
+import { mapsDirUrl, roadLabel, trainTotal, yahooTransitUrl, type TrainLeg } from "@/lib/expense";
 
 type Expense = {
   id: string;
@@ -13,6 +13,8 @@ type Expense = {
   transport: "car" | "train";
   distance_km: number | null;
   route_stops: string[];
+  use_highway: boolean;
+  use_toll: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -202,6 +204,7 @@ function ExpenseDetail({ e, onWithdraw }: { e: Expense; onWithdraw: (id: string)
             <a href={mapsDirUrl(e.route_stops)} target="_blank" rel="noreferrer">
               {e.route_stops.join(" → ")}
             </a>
+            {roadLabel(e) && `（${roadLabel(e)}）`}
           </p>
         )
       ) : (
@@ -291,6 +294,8 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
   const [returnHome, setReturnHome] = useState(isLast && !!c);
   const [home, setHome] = useState(me.address);
   const [distance, setDistance] = useState("");
+  const [useHighway, setUseHighway] = useState(false);
+  const [useToll, setUseToll] = useState(false);
   const [legKm, setLegKm] = useState<number[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [routeMsg, setRouteMsg] = useState("");
@@ -309,10 +314,10 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
     setSearching(true);
     setRouteMsg("");
     try {
-      const r = await api<{ km: number; legs: number[]; minutes: number | null }>("/api/liff/distance", { body: { stops } });
+      const r = await api<{ km: number; legs: number[]; minutes: number | null }>("/api/liff/distance", { body: { stops, use_highway: useHighway, use_toll: useToll } });
       setDistance(String(r.km));
       setLegKm(r.legs);
-      setRouteMsg(`合計 ${r.km} km${r.minutes ? `（運転 約 ${r.minutes} 分）` : ""}`);
+      setRouteMsg(`合計 ${r.km} km${r.minutes ? `（運転 約 ${r.minutes} 分）` : ""}／${roadLabel({ use_highway: useHighway, use_toll: useToll }) || "高速・有料道路なし"}`);
     } catch (err) {
       setRouteMsg(errMsg(err));
     } finally {
@@ -333,6 +338,8 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
       if (transport === "car") {
         fd.set("distance_km", distance);
         fd.set("route_stops", JSON.stringify(stops.filter(Boolean)));
+        fd.set("use_highway", useHighway ? "1" : "0");
+        fd.set("use_toll", useToll ? "1" : "0");
         fd.set("parking_fee", parking || "0");
       } else {
         fd.set("train_legs", JSON.stringify(legs));
@@ -427,6 +434,16 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
               )}
             </div>
 
+            <div className="row mt small">
+              <label className="row">
+                <input type="checkbox" checked={useHighway} onChange={(ev) => (setUseHighway(ev.target.checked), touch())} />
+                高速道路を使う
+              </label>
+              <label className="row">
+                <input type="checkbox" checked={useToll} onChange={(ev) => (setUseToll(ev.target.checked), touch())} />
+                有料道路を使う
+              </label>
+            </div>
             <div className="row mt" style={{ marginBottom: 8 }}>
               {me.routeSearch && (
                 <button type="button" className="btn primary" disabled={searching || !stopsReady} onClick={searchRoute}>
@@ -454,6 +471,7 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
                     origin: stops[0],
                     destination: stops[stops.length - 1],
                     mode: "driving",
+                    ...(useHighway ? {} : { avoid: useToll ? "highways" : "tolls|highways" }),
                     ...(stops.length > 2 ? { waypoints: stops.slice(1, -1).join("|") } : {}),
                   })}`}
                 />
@@ -474,6 +492,7 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
         ) : (
           <div className="card">
             <h3>電車の区間</h3>
+            <p className="small muted">駅名を入れて「運賃を調べる」を押すと Yahoo!乗換案内が開きます。表示された運賃を入力してください。</p>
             {legs.map((l, i) => (
               <div key={i} style={{ borderBottom: i < legs.length - 1 ? "1px solid var(--border)" : undefined, paddingBottom: 8, marginBottom: 8 }}>
                 <div className="row" style={{ flexWrap: "nowrap" }}>
@@ -486,6 +505,11 @@ function NewExpense({ target, dayCases, onCancel, onDone }: { target: Target; da
                   <label className="row nowrap small">
                     <input type="checkbox" checked={l.round_trip} onChange={(ev) => setLeg(i, { round_trip: ev.target.checked })} /> 往復
                   </label>
+                  {l.from.trim() && l.to.trim() && (
+                    <a className="btn sm nowrap" href={yahooTransitUrl(l.from, l.to)} target="_blank" rel="noreferrer">
+                      運賃を調べる
+                    </a>
+                  )}
                   {legs.length > 1 && (
                     <button type="button" className="btn sm" onClick={() => setLegs((ls) => ls.filter((_, j) => j !== i))}>
                       ✕

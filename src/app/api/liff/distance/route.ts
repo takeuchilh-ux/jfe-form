@@ -4,7 +4,7 @@ import { HttpError } from "@/lib/session";
 
 /**
  * Google Routes API で車の経路距離を取得。
- * stops = [出発地, 経由地..., 到着地]（2〜10 地点）。区間ごとの距離と合計（km）を返す
+ * stops = [出発地, 経由地..., 到着地]（2〜10 地点）。use_highway / use_toll が false の道路は避けて検索する。区間ごとの距離と合計（km）を返す
  */
 export const POST = handle(async (req: Request) => {
   await currentInspector();
@@ -14,6 +14,9 @@ export const POST = handle(async (req: Request) => {
   const stops = (Array.isArray(b.stops) ? b.stops : []).map((s) => str(s, 300)).filter(Boolean);
   if (stops.length < 2) bad("出発地と目的地を入力してください");
   if (stops.length > 10) bad("経由地は 8 か所までです");
+  // 高速道路を使う場合は料金所も通るので、有料道路の回避も外す
+  const useHighway = !!b.use_highway;
+  const useToll = useHighway || !!b.use_toll;
 
   const res = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
     method: "POST",
@@ -30,6 +33,7 @@ export const POST = handle(async (req: Request) => {
       languageCode: "ja-JP",
       regionCode: "JP",
       units: "METRIC",
+      routeModifiers: { avoidHighways: !useHighway, avoidTolls: !useToll },
     }),
   });
   const json = (await res.json().catch(() => ({}))) as {

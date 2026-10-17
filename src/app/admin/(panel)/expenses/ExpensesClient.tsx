@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/lib/client";
 import { EXPENSE_STATUS, fmtDate, yen } from "@/lib/format";
-import { mapsDirUrl, type TrainLeg } from "@/lib/expense";
+import { mapsDirUrl, roadLabel, type TrainLeg } from "@/lib/expense";
 
 export type ExpenseRow = {
   id: string;
@@ -12,6 +12,8 @@ export type ExpenseRow = {
   transport: "car" | "train";
   distance_km: number | null;
   route_stops: string[];
+  use_highway: boolean;
+  use_toll: boolean;
   parking_fee: number;
   train_legs: TrainLeg[];
   amount: number;
@@ -285,6 +287,7 @@ function Detail({ r }: { r: ExpenseRow }) {
       <>
         <strong>{r.distance_km}km</strong>
         {r.parking_fee > 0 && ` ／ 駐車場 ${yen(r.parking_fee)}`}
+        {roadLabel(r) && <span className="badge warn" style={{ marginLeft: 4 }}>{roadLabel(r)}</span>}
         {r.route_stops.length >= 2 && (
           <div>
             <a href={mapsDirUrl(r.route_stops)} target="_blank" rel="noreferrer">

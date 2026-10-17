@@ -5,6 +5,17 @@ export function trainTotal(legs: TrainLeg[]) {
   return legs.reduce((sum, l) => sum + Math.max(0, Math.round(l.fare)) * (l.round_trip ? 2 : 1), 0);
 }
 
+/** 車：高速・有料道路の利用表示（使っていなければ空） */
+export function roadLabel(e: { use_highway?: boolean; use_toll?: boolean }) {
+  return [e.use_highway && "高速道路", e.use_toll && "有料道路"].filter(Boolean).join("・") + (e.use_highway || e.use_toll ? "を利用" : "");
+}
+
+/** Yahoo!乗換案内の検索結果 URL（電車の運賃確認用） */
+export function yahooTransitUrl(from: string, to: string) {
+  const name = (s: string) => s.trim().replace(/駅$/, "");
+  return `https://transit.yahoo.co.jp/search/result?${new URLSearchParams({ from: name(from), to: name(to) })}`;
+}
+
 /** Google マップの経路検索 URL（車）。stops = [出発地, 経由地..., 到着地] */
 export function mapsDirUrl(stops: string[]) {
   const s = stops.filter(Boolean);
