@@ -35,6 +35,7 @@ function KindBadge({ kind }: { kind: Inspector["kind"] }) {
 function status(i: Inspector) {
   if (!i.active) return <span className="badge">無効</span>;
   if (!i.approved_at) return <span className="badge warn">承認待ち</span>;
+  if (!i.line_user_id) return <span className="badge">LINE未連携</span>;
   return <span className="badge ok">承認済</span>;
 }
 
@@ -45,6 +46,8 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
   const [msg, setMsg] = useState<{ type: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const pending = inspectors.filter((i) => i.active && !i.approved_at);
+  /** 管理者が先に登録した、LINE と未連携の検査員（LINE から登録した人を統合できる） */
+  const unlinked = inspectors.filter((i) => !i.line_user_id);
 
   function open(i: Inspector) {
     setEditing(i);
@@ -59,6 +62,30 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
       const r = await api<{ lineError: string | null }>(`/api/admin/inspectors/${id}`, { method: "PATCH", body });
       if (r.lineError) setMsg({ type: "warn", text: `保存しましたが LINE 側の処理に失敗しました：${r.lineError}` });
       if (close) setEditing(null);
+      router.refresh();
+    } catch (e) {
+      setMsg({ type: "error", text: errMsg(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function merge(i: Inspector, into: Inspector) {
+    if (
+      !confirm(
+        `LINE から登録した ${i.name} さんを、登録済みの「${into.name}」（${KIND_LABEL[into.kind]}）に紐づけます。\n${into.name} のアサインなどはそのまま引き継がれ、基本情報は ${i.name} さんが LINE で登録した内容になります。\n承認済みとして LINE で通知されます。よろしいですか？`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await api<{ lineError: string | null }>(`/api/admin/inspectors/${i.id}/merge`, { body: { into: into.id } });
+      setMsg(
+        r.lineError
+          ? { type: "warn", text: `紐づけましたが LINE 側の処理に失敗しました：${r.lineError}` }
+          : { type: "success", text: `${i.name} さんを「${into.name}」に紐づけて承認しました` },
+      );
       router.refresh();
     } catch (e) {
       setMsg({ type: "error", text: errMsg(e) });
@@ -93,6 +120,8 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
       <div className="card">
         <p style={{ margin: 0 }}>
           検査員は公式 LINE を友だち追加し、基本情報を登録すると「承認待ち」として表示されます。内容を確認して承認してください。
+          <br />
+          先に管理者が登録した人（LINE未連携）がいる場合は、「登録済みの人に紐づけ」で選ぶと、アサインを引き継いで承認できます。
           {addUrl && (
             <>
               <br />
@@ -163,6 +192,25 @@ export default function InspectorsClient({ inspectors, addUrl }: { inspectors: I
                           {KIND_LABEL[k]}で承認
                         </button>
                       ))}
+                      {i.line_user_id && unlinked.length > 0 && (
+                        <select
+                          className="sm"
+                          style={{ width: "auto", marginRight: 4 }}
+                          value=""
+                          disabled={busy}
+                          onChange={(e) => {
+                            const into = unlinked.find((u) => u.id === e.target.value);
+                            if (into) merge(i, into);
+                          }}
+                        >
+                          <option value="">登録済みの人に紐づけ…</option>
+                          {unlinked.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.name}（{KIND_LABEL[u.kind]}）
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </>
                   )}{" "}
                   <button className="btn sm" onClick={() => open(i)}>
